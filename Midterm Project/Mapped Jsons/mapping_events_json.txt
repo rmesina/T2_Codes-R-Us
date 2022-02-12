@@ -1,0 +1,17 @@
+{nation:
+ [index
+  {'eventId':,
+   'subEventName':, 
+   'tags': [{'id': }], 
+   'playerId':,
+   'positions': [{"y":#,"x:#}, {"y":#,"x:#}]
+   'matchId', 
+   'eventName', 
+   'teamId',
+   'matchPeriod',
+   'eventSec',
+   'subEventId',
+   'id'
+   }
+ ]
+}

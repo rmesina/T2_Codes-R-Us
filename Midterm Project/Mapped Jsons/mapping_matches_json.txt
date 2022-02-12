@@ -1,0 +1,87 @@
+{'nations':
+ [{'status':,
+   'roundId':,
+   'gameweek':,
+   'teamsData':
+    {'team1ID#(ex. 3162):
+      {'scoreET':,
+       'coachId':,
+       'side':,
+       'teamId':,
+       'score':,
+       'scoreP',
+       'hasFormation':,
+       'formation':
+	{'bench':
+	  [(each item in list is a player)
+	   {'playerId':,
+	    'ownGoals':,
+	    'redCards':,
+	    'goals':,
+	    'yellowCards':
+	   }],
+	 'lineup':
+	  [(each item in list is a player)
+	   {'playerId':,
+	    'ownGoals':,
+	    'redCards':,
+	    'goals':,
+	    'yellowCards':
+	   }],
+	 'substitutions':
+	  [(each item in list is an instance of substitution)
+	   {'playerIn':,
+	    'playerOut':,
+	    'minute':
+	   }],
+       'scoreHT':
+       },
+     'team2ID#:,
+      {'scoreET':,
+       'coachId':,
+       'side':,
+       'teamId':,
+       'score':,
+       'scoreP',
+       'hasFormation':,
+       'formation:'
+	{'bench':
+	  [(each item in list is a player)
+	   {'playerId':,
+	    'ownGoals':,
+	    'redCards':,
+	    'goals':,
+	    'yellowCards':
+	   }],
+	 'lineup':
+	  [(each item in list is a player)
+	   {'playerId':,
+	    'ownGoals':,
+	    'redCards':,
+	    'goals':,
+	    'yellowCards':
+	   }],
+	 'substitutions':
+	  [(each item in list is an instance of substitution)
+	   {'playerIn':,
+	    'playerOut':,
+	    'minute':
+	   }],,
+       'scoreHT':
+       },
+   'seasonId':,
+   'dateutc':,
+   'winner':,
+   'venue':,
+   'wyId':,
+   'label':,
+   'date':,
+   'referees':
+    [(each item in list is one of the refs)
+     {'refereeId':,
+      'role':
+     }, 
+   'duration':,
+   'competitionId':
+ }]
+}

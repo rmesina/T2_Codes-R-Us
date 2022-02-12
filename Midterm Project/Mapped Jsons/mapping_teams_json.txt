@@ -1,0 +1,12 @@
+[{'city':,
+  'name':,
+  'wyId':,
+  'officialName':,
+  'area':
+   {'name':,
+    'id':,
+    'alpha3code':,
+    'alpha2code':,
+   }
+  'type':
+ }]

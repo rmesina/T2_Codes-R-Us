@@ -1,0 +1,17 @@
+[(each item in list is a player)
+ {'passportArea':,
+  'weight':,
+  'firstName':,
+  'middleName':,
+  'lastName':,
+  'currentTeamId':,
+  'birthDate':,
+  'height':,
+  'role':,
+  'birthArea':,
+  'wyId':,
+  'foot':,
+  'shortName':,
+  'currentNationalTeamId':
+ }
+]
