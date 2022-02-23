@@ -7,6 +7,9 @@ output: html_document
 # some of common options (and the defaults) are: 
 # include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
 library(ezids)
+library(ggplot2)
+library(ggsoccer)
+library(rayshader)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
@@ -40,4 +43,11 @@ shots<-subset(event_data, Event.Name=='Shot')
 goals<-subset(shots, Tag.1=='Goal')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
+```
+
+```{r}
+shots_hist<-ggplot(shots, aes(x=x.Start, y=y.Start)) +
+  geom_histogram() +
+  scale_fill_viridis_c(option='C')
+plot_gg(shots_hist, multicore=TRUE)
 ```
