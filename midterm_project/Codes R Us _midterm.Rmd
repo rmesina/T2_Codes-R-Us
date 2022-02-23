@@ -28,3 +28,6 @@ european<-data.frame(read.csv('./datasets/events_European_Championship.csv'))
 worldcup<-data.frame(read.csv('./datasets/events_World_Cup.csv'))
 ```
 
+```{r}
+
+```
