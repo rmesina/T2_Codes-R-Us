@@ -26,8 +26,18 @@ france<-data.frame(read.csv('./datasets/events_France.csv'))
 spain<-data.frame(read.csv('./datasets/events_Spain.csv'))
 european<-data.frame(read.csv('./datasets/events_European_Championship.csv'))
 worldcup<-data.frame(read.csv('./datasets/events_World_Cup.csv'))
+event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
 ```
 
-```{r}
-england$Tags<-as.list(england$Tags)
+```{r combine data frames}
+#Append dataframes into a single dataframe from which to draw.
+event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+```
+
+```{r pull shots, goals, assist, and key passes data}
+#Collect shots, goals, assists, and key passes into their own dataframes
+shots<-subset(event_data, Event.Name=='Shot')
+goals<-subset(shots, Tag.1=='Goal')
+assists<-subset(event_data, Tag.1=='Assist')
+key_passes<-subset(event_data, Tag.1=='Key pass')
 ```
