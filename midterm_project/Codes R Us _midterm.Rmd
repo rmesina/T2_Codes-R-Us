@@ -155,3 +155,14 @@ ttest95_goals_x
 ttest95_goals_y<-t.test(goals_clean$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
 ttest95_goals_y
 ```
+```{r Dividing histograms to get ratios}
+hist_goals<-hist(goals_clean$x.Start)
+hist_shots<-hist(shots_clean$x.Start)
+hist_goals_counts<-hist_goals$counts
+hist_shots_counts<-hist_shots$counts
+hist_goalshot_ratio<-hist_goals_counts/hist_shots_counts
+
+ggplot+
+  geom_histogram()
+```
+
