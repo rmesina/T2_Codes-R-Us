@@ -166,3 +166,7 @@ ggplot+
   geom_histogram()
 ```
 
+```{r}
+xkabledply(head(event_data))
+head(event_data)
+```
