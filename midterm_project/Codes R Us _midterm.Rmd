@@ -35,6 +35,10 @@ event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
 ```{r combine data frames}
 #Append dataframes into a single dataframe from which to draw.
 event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+
+#Check structure and summary statistics
+str(event_data)
+summary(event_data)
 ```
 
 ```{r pull shots, goals, assist, and key passes data}
