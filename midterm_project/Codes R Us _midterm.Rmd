@@ -43,7 +43,7 @@ str(event_data)
 xkablesummary(event_data)
 head(event_data)
 ```
-After combining datasets from each competition, we observe 3,251,294 events. Most variables are categorical except for Event.Time, x.Start and y.Start. We continue by examining each event.
+After combining datasets from each competition, we observe 3,251,294 events. Most variables are categorical except for Event.Time, x.Start and y.Start. We continue by converting some variable types.
 
 ```{r pull shots, goals, assist, and key passes data}
 #Collect shots, goals, assists, and key passes into their own dataframes
