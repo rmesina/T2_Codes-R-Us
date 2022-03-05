@@ -35,11 +35,15 @@ event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
 ```{r combine data frames}
 #Append dataframes into a single dataframe from which to draw.
 event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+```
 
+```{r check combined dataset}
 #Check structure and summary statistics
 str(event_data)
 summary(event_data)
+head(event_data)
 ```
+After combining datasets from each competition, we observe 3,251,294 events. We continue by examining each event.
 
 ```{r pull shots, goals, assist, and key passes data}
 #Collect shots, goals, assists, and key passes into their own dataframes
