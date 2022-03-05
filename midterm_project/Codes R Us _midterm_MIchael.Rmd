@@ -1,0 +1,172 @@
+---
+title: "CodesRUs_midterm"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+library(ggplot2)
+library(ggsoccer)
+library(dplyr)
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+## R Markdown
+
+```{r load data}
+#Load Event data from each competition as a dataframe
+england<-data.frame(read.csv('./datasets/events_England.csv'))
+italy<-data.frame(read.csv('./datasets/events_Italy.csv'))
+germany<-data.frame(read.csv('./datasets/events_Germany.csv'))
+france<-data.frame(read.csv('./datasets/events_France.csv'))
+spain<-data.frame(read.csv('./datasets/events_Spain.csv'))
+european<-data.frame(read.csv('./datasets/events_European_Championship.csv'))
+worldcup<-data.frame(read.csv('./datasets/events_World_Cup.csv'))
+event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+```
+
+```{r combine data frames}
+#Append dataframes into a single dataframe from which to draw.
+event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+```
+
+```{r pull shots, goals, assist, and key passes data}
+#Collect shots, goals, assists, and key passes into their own dataframes
+shots<-subset(event_data, Event.Name=='Shot')
+goals<-subset(shots, Tag.1=='Goal')
+assists<-subset(event_data, Tag.1=='Assist')
+key_passes<-subset(event_data, Tag.1=='Key pass')
+
+#convert x and y coordinate columns from characters to integer values
+assists$x.Start=as.numeric(assists$x.Start)
+assists$y.Start=as.numeric(assists$y.Start)
+assists$x.End=as.numeric(assists$x.End)
+assists$y.End=as.numeric(assists$y.End)
+key_passes$x.Start=as.numeric(key_passes$x.Start)
+key_passes$y.Start=as.numeric(key_passes$y.Start)
+key_passes$x.End=as.numeric(key_passes$x.End)
+key_passes$y.End=as.numeric(key_passes$y.End)
+
+#convert assist event and subevent labels to factors
+assists$Event.Name=as.factor(assists$Event.Name)
+assists$Subevent.Name=as.factor(assists$Subevent.Name)
+key_passes$Event.Name=as.factor(key_passes$Event.Name)
+key_passes$Subevent.Name=as.factor(key_passes$Subevent.Name)
+
+#Calculate assist distance and add to assist data frame as new column.
+assists<-assists %>% mutate(assist_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+key_passes<-key_passes %>% mutate(keypass_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+```
+
+```{r chekcing for outliers}
+assists_clean<-outlierKD2(assists, assist_dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+assists_clean<-na.omit(assists_clean)
+assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+assists_clean_x<-na.omit(assists_clean_x)
+assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+assists_clean_y<-na.omit(assists_clean_y)
+key_passes_clean<-outlierKD2(key_passes, keypass_dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+key_passes_clean<-na.omit(key_passes_clean)
+key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+key_passes_clean_x<-na.omit(key_passes_clean_x)
+key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+key_passes_clean_y<-na.omit(key_passes_clean_y)
+shots_clean<-outlierKD2(shots, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+shots_clean<-na.omit(shots_clean)
+goals_clean<-outlierKD2(goals, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+goals_clean<-na.omit(goals_clean)
+```
+
+```{r check distributions of each event type}
+#Histograms of Assist and Key Pass coordinates and distances
+ggplot()+
+  geom_histogram(data=assists_clean, aes(x=assist_dist, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  geom_histogram(data=key_passes_clean, aes(x=keypass_dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  stat_function(fun = dnorm, args = list(mean = mean(assists_clean$assist_dist), sd = sd(assists_clean$assist_dist)), color='dark green', fill='green', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$keypass_dist), sd = sd(key_passes_clean$keypass_dist)), color='dark red', fill='green', size=1)+
+  labs(title="Histograms of the length of Assists and Key Passes with Normal Distribution Fit", x="Length", y="Nomralized Count")+
+  scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.title = element_text(size=14))
+
+ggplot()+
+  geom_histogram(data=(assists_clean), aes(x=x.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  geom_histogram(data=(key_passes_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  stat_function(fun = dnorm, args = list(mean = mean(assists_clean$x.Start), sd = sd(assists_clean$x.Start)), color='dark green', fill='green', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$x.Start), sd = sd(key_passes_clean$x.Start)), color='dark red', fill='red', size=1)+
+  labs(title="Histograms of the x-coordinate of Key Passes & Assists with Normal Distribution Fits", x="x-coordinate", y="Nomralized Count")+
+  scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.title = element_text(size=14))
+
+ggplot()+
+  geom_histogram(data=(assists_clean), aes(x=y.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  geom_histogram(data=(key_passes_clean), aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  stat_function(fun = dnorm, args = list(mean = mean(assists_clean$y.Start), sd = sd(assists_clean$y.Start)), color='dark green', fill='green', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$y.Start), sd = sd(key_passes_clean$y.Start)), color='dark red', fill='red', size=1)+
+  labs(title="Histograms of the y-coordinate of Key Passes & Assists with Normal Distribution Fits", x="y-coordinate", y="Nomralized Count")+
+  scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.title = element_text(size=14))
+
+#Histograms of shots and goals coordinates
+ggplot()+
+  geom_histogram(data=(shots_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=(goals_clean), aes(x=x.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$x.Start), sd = sd(shots_clean$x.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(goals_clean$x.Start), sd = sd(goals_clean$x.Start)), color='dark blue', fill='blue', size=1)+
+  labs(title="Histograms of the x-coordinate of Shots & Goals with Normal Distribution Fits", x="x-coordinate", y="Nomralized Count")+
+  scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.title = element_text(size=14))
+
+ggplot()+
+  geom_histogram(data=shots_clean, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=goals_clean, aes(x=y.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$y.Start), sd = sd(shots_clean$y.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(goals_clean$y.Start), sd = sd(goals_clean$y.Start)), color='dark blue', fill='blue', size=1)+
+  labs(title="Histograms of the y-coordinate of Shots & Goals with Normal Distribution Fits", x="y-coordinate", y="Nomralized Count")+
+  scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.title = element_text(size=14))
+```
+```{r hypothesis testing}
+ttest95_assists<-t.test(assists_clean$assist_dist, mu=mean(key_passes_clean$keypass_dist), conf.level=0.95)
+ttest95_assists
+ttest95_goals_x<-t.test(goals_clean$x.Start, mu=mean(shots_clean$x.Start), conf.level = 0.95)
+ttest95_goals_x
+ttest95_goals_y<-t.test(goals_clean$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
+ttest95_goals_y
+```
+```{r Dividing histograms to get ratios}
+hist_goals<-hist(goals_clean$x.Start)
+hist_shots<-hist(shots_clean$x.Start)
+hist_goals_counts<-hist_goals$counts
+hist_shots_counts<-hist_shots$counts
+hist_goalshot_ratio<-hist_goals_counts/hist_shots_counts
+
+ggplot+
+  geom_histogram()
+```
+
+```{r}
+xkabledply(head(event_data))
+head(event_data)
+```
