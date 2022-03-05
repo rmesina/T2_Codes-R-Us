@@ -45,6 +45,13 @@ head(event_data)
 ```
 After combining datasets from each competition, we observe 3,251,294 events. Most variables are categorical except for Event.Time, x.Start and y.Start. We continue by converting some variable types.
 
+```{r convert variables}
+#x.End and y.End should be converted to integer
+event_data$x.End <- as.numeric(event_data$x.End)
+event_data$y.End <- as.numeric(event_data$y.End)
+xkablesummary(event_data)
+```
+
 ```{r pull shots, goals, assist, and key passes data}
 #Collect shots, goals, assists, and key passes into their own dataframes
 shots<-subset(event_data, Event.Name=='Shot')
