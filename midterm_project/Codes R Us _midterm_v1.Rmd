@@ -20,26 +20,29 @@ options(scientific=T, digits = 3)
 
 ## R Markdown
 
+1. Import datasets
+
 ```{r load data}
 #Load Event data from each competition as a dataframe
-england<-data.frame(read.csv('./datasets/events_England.csv'))
-italy<-data.frame(read.csv('./datasets/events_Italy.csv'))
-germany<-data.frame(read.csv('./datasets/events_Germany.csv'))
-france<-data.frame(read.csv('./datasets/events_France.csv'))
-spain<-data.frame(read.csv('./datasets/events_Spain.csv'))
-european<-data.frame(read.csv('./datasets/events_European_Championship.csv'))
-worldcup<-data.frame(read.csv('./datasets/events_World_Cup.csv'))
-event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
-
-str(event_data)
-head(event_data)
-tail(event_data)
+england<-data.frame(read.csv('./datasets/events_England_new.csv'))
+italy<-data.frame(read.csv('./datasets/events_Italy_new.csv'))
+germany<-data.frame(read.csv('./datasets/events_Germany_new.csv'))
+france<-data.frame(read.csv('./datasets/events_France_new.csv'))
+spain<-data.frame(read.csv('./datasets/events_Spain_new.csv'))
+european<-data.frame(read.csv('./datasets/events_European_Championship_new.csv'))
+worldcup<-data.frame(read.csv('./datasets/events_World_Cup_new.csv'))
+                     
 ```
 
 ```{r combine data frames}
 #Append dataframes into a single dataframe from which to draw.
 event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+str(event_data)
+head(event_data)
+tail(event_data)
 ```
+
+There are a total of 3,251,294 events and 18 variables. We continue by converting data types where needed.
 
 ```{r pull shots, goals, assist, and key passes data}
 #Collect shots, goals, assists, and key passes into their own dataframes
