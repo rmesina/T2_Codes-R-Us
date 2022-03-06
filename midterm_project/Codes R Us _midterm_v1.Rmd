@@ -59,12 +59,24 @@ event_data$Subevent.Name=as.factor(event_data$Subevent.Name)
 str(event_data)
 ```
 
-X and Y coordinates have been successfully converted to numeric. Event Name and Subevent Name are have also been converted to factor. We continue by creating separate dataframes for each event of interest.
+X and Y coordinates have been successfully converted to numeric. Event Name and Subevent Name are have also been converted to factor. We continue by calculating distance for relevant variables of interest.
+
+
+```{r}
+
+event_data<-event_data %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+
+event_data$dist <- as.numeric(event_data$dist)
+
+summary(event_data$dist)
+str(event_data)
+```
+Distance has been calculated. Continue by creating separate dataframes for each event of interest.
 
 ```{r}
 #Collect shots, goals, assists, and key passes into their own dataframes
 shots<-subset(event_data, Event.Name=='Shot')
-goals<-subset(shots, Tag.1=='Goal')
+goals<-subset(event_data, Tag.1=='Goal')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
 
@@ -72,52 +84,84 @@ head(shots)
 head(goals)
 head(assists)
 head(key_passes)
-```
-
-Using x and y coordinates, calculate distances of assists and key passes.
-
-```{r}
-#Calculate assist distance and add to assist data frame as new column.
-assists<-assists %>% mutate(assist_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
-key_passes<-key_passes %>% mutate(keypass_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
-
-summary(assists)
-summary(key_passes)
 
 ```
+
+For each event of interest, check for and remove outliers.
 
 ```{r checking for outliers}
-assists_clean<-outlierKD2(assists, assist_dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+assists_clean<-outlierKD2(assists, dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean<-na.omit(assists_clean)
+
 assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean_x<-na.omit(assists_clean_x)
+
 assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean_y<-na.omit(assists_clean_y)
-key_passes_clean<-outlierKD2(key_passes, keypass_dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+
+key_passes_clean<-outlierKD2(key_passes, dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 key_passes_clean<-na.omit(key_passes_clean)
+
 key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 key_passes_clean_x<-na.omit(key_passes_clean_x)
+
 key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 key_passes_clean_y<-na.omit(key_passes_clean_y)
+
 shots_clean<-outlierKD2(shots, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 shots_clean<-na.omit(shots_clean)
+
 goals_clean<-outlierKD2(goals, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 goals_clean<-na.omit(goals_clean)
+
+```
+
+Quick visual of the field: Plot start/end position and distance of each event.
+
+```{r}
+
+#Shots
+plot(shots_clean$x.Start,shots_clean$y.Start,main='Start Position of Shots', xlab = 'x.Start', ylab = 'y.Start')
+hist(shots_clean$dist, main='Distance of Shots', xlab = 'Shot Distance')
+
+#Goals
+plot(goals_clean$x.Start,goals_clean$y.Start,main='Start Position of Goals', xlab = 'x.Start', ylab = 'y.Start')
+hist(goals_clean$dist, main='Distance of Shots Leading to Goals', xlab = 'Shot Distance')
+
+#Assists
+plot(assists_clean_x$x.Start,assists_clean_x$y.Start,main='Start Position of Assists', xlab = 'x.Start', ylab = 'y.Start')
+hist(assists_clean$dist, main='Distance of Assists', xlab = 'Shot Distance')
+
+#Key Passes
+plot(key_passes_clean_x$x.Start,key_passes_clean_x$y.Start,main='Start Position of Key Passes', xlab = 'x.Start', ylab = 'y.Start')
+hist(key_passes_clean$dist, main='Distance of Key Passes', xlab = 'Shot Distance')
 ```
 
 ```{r check distributions of each event type}
-#Histograms of Assist and Key Pass coordinates and distances
+
+#Histograms of Assist and Key Pass distance
+
 ggplot()+
-  geom_histogram(data=assists_clean, aes(x=assist_dist, y=..density..), color='Black', fill='Green', alpha=0.3)+
-  geom_histogram(data=key_passes_clean, aes(x=keypass_dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
-  stat_function(fun = dnorm, args = list(mean = mean(assists_clean$assist_dist), sd = sd(assists_clean$assist_dist)), color='dark green', fill='green', size=1)+
-  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$keypass_dist), sd = sd(key_passes_clean$keypass_dist)), color='dark red', fill='green', size=1)+
-  labs(title="Histograms of the length of Assists and Key Passes with Normal Distribution Fit", x="Length", y="Nomralized Count")+
+  geom_histogram(data=assists_clean, aes(x=dist, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  
+  geom_histogram(data=key_passes_clean, aes(x=dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  
+  stat_function(fun = dnorm, args = list(mean = mean(assists_clean$dist), sd = sd(assists_clean$dist)), color='dark green', fill='green', size=1)+
+  
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$dist), sd = sd(key_passes_clean$dist)), color='dark red', fill='green', size=1)+
+  
+  labs(title="Histograms of the Distance of Assists and Key Passes with Normal Distribution Fit", x="Distance", y="Nomralized Count")+
+  
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
+```
+
+```{r}
+
+#Histograms of Assist and Key Pass coordinates
 
 ggplot()+
   geom_histogram(data=(assists_clean), aes(x=x.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
