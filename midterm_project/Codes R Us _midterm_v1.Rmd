@@ -74,13 +74,19 @@ head(assists)
 head(key_passes)
 ```
 
+Using x and y coordinates, calculate distances of assists and key passes.
+
 ```{r}
 #Calculate assist distance and add to assist data frame as new column.
 assists<-assists %>% mutate(assist_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
 key_passes<-key_passes %>% mutate(keypass_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+
+summary(assists)
+summary(key_passes)
+
 ```
 
-```{r chekcing for outliers}
+```{r checking for outliers}
 assists_clean<-outlierKD2(assists, assist_dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean<-na.omit(assists_clean)
 assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
