@@ -45,28 +45,36 @@ tail(event_data)
 There are a total of 3,251,294 events and 18 variables. We continue by converting data types where needed.
 
 ```{r pull shots, goals, assist, and key passes data}
+#convert x and y coordinate columns from characters to integer values
+event_data$x.End <- as.numeric(event_data$x.End)
+event_data$y.End <- as.numeric(event_data$y.End)
+
+event_data$x.Start <- as.numeric(event_data$x.Start)
+event_data$y.Start <- as.numeric(event_data$y.Start)
+
+#convert event and subevent labels to factors
+event_data$Event.Name=as.factor(event_data$Event.Name)
+event_data$Subevent.Name=as.factor(event_data$Subevent.Name)
+
+str(event_data)
+```
+
+X and Y coordinates have been successfully converted to numeric. Event Name and Subevent Name are have also been converted to factor. We continue by creating separate dataframes for each event of interest.
+
+```{r}
 #Collect shots, goals, assists, and key passes into their own dataframes
 shots<-subset(event_data, Event.Name=='Shot')
 goals<-subset(shots, Tag.1=='Goal')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
 
-#convert x and y coordinate columns from characters to integer values
-assists$x.Start=as.numeric(assists$x.Start)
-assists$y.Start=as.numeric(assists$y.Start)
-assists$x.End=as.numeric(assists$x.End)
-assists$y.End=as.numeric(assists$y.End)
-key_passes$x.Start=as.numeric(key_passes$x.Start)
-key_passes$y.Start=as.numeric(key_passes$y.Start)
-key_passes$x.End=as.numeric(key_passes$x.End)
-key_passes$y.End=as.numeric(key_passes$y.End)
+head(shots)
+head(goals)
+head(assists)
+head(key_passes)
+```
 
-#convert assist event and subevent labels to factors
-assists$Event.Name=as.factor(assists$Event.Name)
-assists$Subevent.Name=as.factor(assists$Subevent.Name)
-key_passes$Event.Name=as.factor(key_passes$Event.Name)
-key_passes$Subevent.Name=as.factor(key_passes$Subevent.Name)
-
+```{r}
 #Calculate assist distance and add to assist data frame as new column.
 assists<-assists %>% mutate(assist_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
 key_passes<-key_passes %>% mutate(keypass_dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
