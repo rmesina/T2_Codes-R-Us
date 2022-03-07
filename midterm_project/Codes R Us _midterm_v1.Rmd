@@ -139,7 +139,7 @@ hist(key_passes_clean$dist, main='Distance of Key Passes', xlab = 'Shot Distance
 
 ```{r check distributions of each event type}
 
-#Histograms of Assist and Key Pass distance
+#Histograms of Assist and Key Pass Distance
 
 ggplot()+
   geom_histogram(data=assists_clean, aes(x=dist, y=..density..), color='Black', fill='Green', alpha=0.3)+
@@ -161,51 +161,81 @@ ggplot()+
 
 ```{r}
 
-#Histograms of Assist and Key Pass coordinates
+#Histograms of Assist and Key Pass x Coordinates
 
 ggplot()+
   geom_histogram(data=(assists_clean), aes(x=x.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  
   geom_histogram(data=(key_passes_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(assists_clean$x.Start), sd = sd(assists_clean$x.Start)), color='dark green', fill='green', size=1)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$x.Start), sd = sd(key_passes_clean$x.Start)), color='dark red', fill='red', size=1)+
+  
   labs(title="Histograms of the x-coordinate of Key Passes & Assists with Normal Distribution Fits", x="x-coordinate", y="Nomralized Count")+
+  
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
+```
+
+```{r}
+
+#Histograms of Assist and Key Pass y Coordinates
 
 ggplot()+
   geom_histogram(data=(assists_clean), aes(x=y.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  
   geom_histogram(data=(key_passes_clean), aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(assists_clean$y.Start), sd = sd(assists_clean$y.Start)), color='dark green', fill='green', size=1)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$y.Start), sd = sd(key_passes_clean$y.Start)), color='dark red', fill='red', size=1)+
+  
   labs(title="Histograms of the y-coordinate of Key Passes & Assists with Normal Distribution Fits", x="y-coordinate", y="Nomralized Count")+
+  
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
 
+```
+
+```{r}
 #Histograms of shots and goals coordinates
 ggplot()+
   geom_histogram(data=(shots_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  
   geom_histogram(data=(goals_clean), aes(x=x.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(shots_clean$x.Start), sd = sd(shots_clean$x.Start)), color='dark red', fill='red', size=1)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean$x.Start), sd = sd(goals_clean$x.Start)), color='dark blue', fill='blue', size=1)+
+  
   labs(title="Histograms of the x-coordinate of Shots & Goals with Normal Distribution Fits", x="x-coordinate", y="Nomralized Count")+
+  
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
+```
 
+```{r}
 ggplot()+
   geom_histogram(data=shots_clean, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  
   geom_histogram(data=goals_clean, aes(x=y.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(shots_clean$y.Start), sd = sd(shots_clean$y.Start)), color='dark red', fill='red', size=1)+
+  
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean$y.Start), sd = sd(goals_clean$y.Start)), color='dark blue', fill='blue', size=1)+
+  
   labs(title="Histograms of the y-coordinate of Shots & Goals with Normal Distribution Fits", x="y-coordinate", y="Nomralized Count")+
+  
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
