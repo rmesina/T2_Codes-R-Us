@@ -41,6 +41,7 @@ event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
 #Collect shots, goals, assists, and key passes into their own dataframes
 shots<-subset(event_data, Event.Name=='Shot')
 goals<-subset(shots, Tag.1=='Goal')
+shot_attempts<-subset(shots, Tag.1!='Goal')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
 
@@ -78,8 +79,8 @@ key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE, boxplt = TRUE, hist
 key_passes_clean_x<-na.omit(key_passes_clean_x)
 key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 key_passes_clean_y<-na.omit(key_passes_clean_y)
-shots_clean<-outlierKD2(shots, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
-shots_clean<-na.omit(shots_clean)
+shot_attempts_clean<-outlierKD2(shot_attempts, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+shot_attempts_clean<-na.omit(shot_attempts_clean)
 goals_clean<-outlierKD2(goals, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 goals_clean<-na.omit(goals_clean)
 ```
@@ -124,9 +125,9 @@ ggplot()+
 
 #Histograms of shots and goals coordinates
 ggplot()+
-  geom_histogram(data=(shots_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=(shot_attempts_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   geom_histogram(data=(goals_clean), aes(x=x.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
-  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$x.Start), sd = sd(shots_clean$x.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(shot_attempts_clean$x.Start), sd = sd(shot_attempts_clean$x.Start)), color='dark red', fill='red', size=1)+
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean$x.Start), sd = sd(goals_clean$x.Start)), color='dark blue', fill='blue', size=1)+
   labs(title="Histograms of the x-coordinate of Shots & Goals with Normal Distribution Fits", x="x-coordinate", y="Nomralized Count")+
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
@@ -136,9 +137,9 @@ ggplot()+
         axis.title = element_text(size=14))
 
 ggplot()+
-  geom_histogram(data=shots_clean, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=shot_attempts_clean, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   geom_histogram(data=goals_clean, aes(x=y.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
-  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$y.Start), sd = sd(shots_clean$y.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(shot_attempts_clean$y.Start), sd = sd(shot_attempts_clean$y.Start)), color='dark red', fill='red', size=1)+
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean$y.Start), sd = sd(goals_clean$y.Start)), color='dark blue', fill='blue', size=1)+
   labs(title="Histograms of the y-coordinate of Shots & Goals with Normal Distribution Fits", x="y-coordinate", y="Nomralized Count")+
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
@@ -147,6 +148,7 @@ ggplot()+
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
 ```
+
 ```{r hypothesis testing}
 ttest95_assists<-t.test(assists_clean$assist_dist, mu=mean(key_passes_clean$keypass_dist), conf.level=0.95)
 ttest95_assists
@@ -155,16 +157,32 @@ ttest95_goals_x
 ttest95_goals_y<-t.test(goals_clean$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
 ttest95_goals_y
 ```
+
 ```{r Dividing histograms to get ratios}
-hist_goals<-hist(goals_clean$x.Start)
-hist_shots<-hist(shots_clean$x.Start)
+hist_goals<-hist(goals_clean$x.Start, breaks=100, xlim = c(0,100))
+hist_shots<-hist(shots_clean$x.Start, breaks = 100, xlim = c(0,100))
 hist_goals_counts<-hist_goals$counts
 hist_shots_counts<-hist_shots$counts
 hist_goalshot_ratio<-hist_goals_counts/hist_shots_counts
 
 ggplot+
-  geom_histogram()
+  geom_histogram(aes(x=hist_shots$breaks, y=hist_goalshot_ratio))
 ```
+```{r density plots}
+goal_density_x<-density(goals_clean$x.Start,
+                        n=100, from=0, to=100)
+goal_density_x$y=goal_density_x$n/sum(goal_density_x$y)*goal_density_x$y
+shot_attempt_density_x<-density(shot_attempts_clean$x.Start,
+                         n=100, from=0, to=100)
+shot_attempt_density_x$y<-shot_attempt_density_x$n/sum(shot_attempt_density_x$y)*shot_attempt_density_x$y
+total_shots<-goal_density_x$y+shot_attempt_density_x$y
+goal_shot_prob_x<-(goal_density_x$y/total_shots)*100
+
+plot(goal_density_x)
+plot(shot_density_x)
+plot(goal_shot_prob_x, ylim=c(0,100))
+```
+
 
 ```{r}
 xkabledply(head(event_data))
