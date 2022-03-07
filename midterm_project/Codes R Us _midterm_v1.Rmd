@@ -44,7 +44,7 @@ tail(event_data)
 
 There are a total of 3,251,294 events and 18 variables. We continue by converting data types where needed.
 
-```{r pull shots, goals, assist, and key passes data}
+```{r convert variables}
 #convert x and y coordinate columns from characters to integer values
 event_data$x.End <- as.numeric(event_data$x.End)
 event_data$y.End <- as.numeric(event_data$y.End)
@@ -62,7 +62,7 @@ str(event_data)
 X and Y coordinates have been successfully converted to numeric. Event Name and Subevent Name are have also been converted to factor. We continue by calculating distance for relevant variables of interest.
 
 
-```{r}
+```{r calculate distance}
 
 event_data<-event_data %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
 
@@ -71,9 +71,10 @@ event_data$dist <- as.numeric(event_data$dist)
 summary(event_data$dist)
 str(event_data)
 ```
+
 Distance has been calculated. Continue by creating separate dataframes for each event of interest.
 
-```{r}
+```{r event datasets}
 #Collect shots, goals, assists, and key passes into their own dataframes
 shots<-subset(event_data, Event.Name=='Shot')
 goals<-subset(event_data, Tag.1=='Goal')
@@ -116,28 +117,52 @@ goals_clean<-na.omit(goals_clean)
 
 ```
 
-Quick visual of the field: Plot start/end position and distance of each event.
+Quick visual of the field: Plot start position and distance of each event.
 
-```{r}
+```{r quick visuals}
 
 #Shots
+jpeg(file="shots_start.jpeg")
 plot(shots_clean$x.Start,shots_clean$y.Start,main='Start Position of Shots', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="shots_dist.jpeg")
 hist(shots_clean$dist, main='Distance of Shots', xlab = 'Shot Distance')
+dev.off()
 
 #Goals
+jpeg(file="goals_start.jpeg")
 plot(goals_clean$x.Start,goals_clean$y.Start,main='Start Position of Goals', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="goals_dist.jpeg")
 hist(goals_clean$dist, main='Distance of Shots Leading to Goals', xlab = 'Shot Distance')
+dev.off()
 
 #Assists
-plot(assists_clean_x$x.Start,assists_clean_x$y.Start,main='Start Position of Assists', xlab = 'x.Start', ylab = 'y.Start')
+
+jpeg(file="assists_start.jpeg")
+plot(assists_clean$x.Start,assists_clean$y.Start,main='Start Position of Assists', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="assists_dist.jpeg")
 hist(assists_clean$dist, main='Distance of Assists', xlab = 'Shot Distance')
+dev.off()
 
 #Key Passes
-plot(key_passes_clean_x$x.Start,key_passes_clean_x$y.Start,main='Start Position of Key Passes', xlab = 'x.Start', ylab = 'y.Start')
+
+jpeg(file="keypass_start.jpeg")
+plot(key_passes_clean$x.Start,key_passes_clean$y.Start,main='Start Position of Key Passes', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="keypass_dist.jpeg")
 hist(key_passes_clean$dist, main='Distance of Key Passes', xlab = 'Shot Distance')
+dev.off()
 ```
 
-```{r check distributions of each event type}
+Visualize distributions of variables of interest.
+
+```{r viz dist}
 
 #Histograms of Assist and Key Pass Distance
 
@@ -150,13 +175,15 @@ ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$dist), sd = sd(key_passes_clean$dist)), color='dark red', fill='green', size=1)+
   
-  labs(title="Histograms of the Distance of Assists and Key Passes with Normal Distribution Fit", x="Distance", y="Nomralized Count")+
+  labs(title="Distance of Assists and Key Passes with Normal Distribution Fit", x="Distance", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
+
+ggsave("assist_keypass_dist.jpeg")
 ```
 
 ```{r}
@@ -172,13 +199,16 @@ ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$x.Start), sd = sd(key_passes_clean$x.Start)), color='dark red', fill='red', size=1)+
   
-  labs(title="Histograms of the x-coordinate of Key Passes & Assists with Normal Distribution Fits", x="x-coordinate", y="Nomralized Count")+
+  labs(title="X-coordinates of Key Passes & Assists with Normal Distribution Fits", x="x-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
+
+ggsave("assist_keypass_x.jpeg")
+
 ```
 
 ```{r}
@@ -194,7 +224,7 @@ ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$y.Start), sd = sd(key_passes_clean$y.Start)), color='dark red', fill='red', size=1)+
   
-  labs(title="Histograms of the y-coordinate of Key Passes & Assists with Normal Distribution Fits", x="y-coordinate", y="Nomralized Count")+
+  labs(title="Y-coordinates of Key Passes & Assists with Normal Distribution Fits", x="y-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
@@ -202,10 +232,13 @@ ggplot()+
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
 
+ggsave("assist_keypass_y.jpeg")
 ```
 
 ```{r}
-#Histograms of shots and goals coordinates
+
+#Histograms of shots and goals x coordinates
+
 ggplot()+
   geom_histogram(data=(shots_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   
@@ -215,16 +248,22 @@ ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean$x.Start), sd = sd(goals_clean$x.Start)), color='dark blue', fill='blue', size=1)+
   
-  labs(title="Histograms of the x-coordinate of Shots & Goals with Normal Distribution Fits", x="x-coordinate", y="Nomralized Count")+
+  labs(title="X-coordinates of Shots & Goals with Normal Distribution Fits", x="x-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
+
+ggsave("shots_goals_x.jpeg")
+
 ```
 
 ```{r}
+
+#Histograms of shots and goals y coordinates
+
 ggplot()+
   geom_histogram(data=shots_clean, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   
@@ -234,14 +273,17 @@ ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean$y.Start), sd = sd(goals_clean$y.Start)), color='dark blue', fill='blue', size=1)+
   
-  labs(title="Histograms of the y-coordinate of Shots & Goals with Normal Distribution Fits", x="y-coordinate", y="Nomralized Count")+
+  labs(title="Y-coordinates of Shots & Goals with Normal Distribution Fits", x="y-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
         axis.title = element_text(size=14))
+
+ggsave("shots_goals_y.jpeg")
 ```
+
 ```{r hypothesis testing}
 ttest95_assists<-t.test(assists_clean$assist_dist, mu=mean(key_passes_clean$keypass_dist), conf.level=0.95)
 ttest95_assists
