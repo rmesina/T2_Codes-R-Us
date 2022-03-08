@@ -335,9 +335,58 @@ capture.output(ttest_goals_v_shots_y, file = "ttests.txt", append = T)
 
 Based on the t-tests, the following variables have significantly different means at the 95% level.
 
-1. Assist v. Key Pass Distance
-2. Goal v. Shot Distance
-3. Goal v. Shot x.Start
-4. Goal v. Shot y.Start
+1. Assist v. Key Pass Distance (higher mean for key pass)
+2. Goal v. Shot Distance (higher mean for goals)
+3. Goal v. Shot x.Start (higher mean for goals)
+4. Goal v. Shot y.Start (higher mean for goals)
 
-Are these differences significant for a
+Based on this finding, it must be the case that teams consider strategies such as planning their starting points or practicing the accuracy of their shots in order to cover a desirable distance.
+
+Regardless of the result (goal v shot, assist v key pass), how do each team's distance and starting points compare to other teams? Let's take a look at the World Cup in particular.
+
+```{r}
+# Stack assist and key pass dataset
+
+assist_key_pass <-rbind(assists_clean, key_passes_clean)
+assist_key_pass_wc <- subset(assist_key_pass, competition=="World Cup")
+
+str(assist_key_pass_wc)
+head(assist_key_pass_wc)
+
+# Focus on top 5 teams with most assists + key passes
+freq1 <- sort(table(assist_key_pass_wc$Team.Name),decreasing=T)
+print(freq1)
+
+assist_key_pass_wc_top5 <- subset(assist_key_pass_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
+
+jpeg(file="assist_key_pass_wc_dist.jpeg")
+boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, main = "Assist or Key Pass Distance by Team", ylab = "Distance", xlab = "Team")
+dev.off()
+
+# Stack shot and goal dataset
+
+shots_goals <-rbind(shots_clean, goals_clean)
+shots_goals_wc <- subset(shots_goals, competition=="World Cup")
+
+str(shots_goals_wc)
+head(shots_goals_wc)
+
+# Focus on top 5 teams with most goals + shots
+freq2 <- sort(table(shots_goals_wc$Team.Name),decreasing=T)
+print(freq2)
+
+shots_goals_wc_top5 <- subset(shots_goals_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
+
+jpeg(file="shots_goals_wc_dist.jpeg")
+boxplot(shots_goals_wc_top5$dist ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal Distance by Team", ylab = "Distance", xlab = "Team")
+dev.off()
+
+jpeg(file="shots_goals_wc_x.jpeg")
+boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name, main = "X.Start by Team", ylab = "X.Start", xlab = "Team")
+dev.off()
+
+jpeg(file="shots_goals_wc_y.jpeg")
+boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, main = "Y.Start by Team", ylab = "Y.Start", xlab = "Team")
+dev.off()
+
+```
