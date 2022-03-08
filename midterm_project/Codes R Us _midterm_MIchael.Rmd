@@ -158,33 +158,81 @@ ttest95_goals_y<-t.test(goals_clean$y.Start, mu=mean(shots_clean$y.Start), conf.
 ttest95_goals_y
 ```
 
-```{r Dividing histograms to get ratios}
-hist_goals<-hist(goals_clean$x.Start, breaks=100, xlim = c(0,100))
-hist_shots<-hist(shots_clean$x.Start, breaks = 100, xlim = c(0,100))
-hist_goals_counts<-hist_goals$counts
-hist_shots_counts<-hist_shots$counts
-hist_goalshot_ratio<-hist_goals_counts/hist_shots_counts
-
-ggplot+
-  geom_histogram(aes(x=hist_shots$breaks, y=hist_goalshot_ratio))
-```
 ```{r density plots}
+#Goal percentage x-coordinate
 goal_density_x<-density(goals_clean$x.Start,
                         n=100, from=0, to=100)
-goal_density_x$y=goal_density_x$n/sum(goal_density_x$y)*goal_density_x$y
+
 shot_attempt_density_x<-density(shot_attempts_clean$x.Start,
                          n=100, from=0, to=100)
+
+goal_density_x$y=goal_density_x$n/sum(goal_density_x$y)*goal_density_x$y
 shot_attempt_density_x$y<-shot_attempt_density_x$n/sum(shot_attempt_density_x$y)*shot_attempt_density_x$y
-total_shots<-goal_density_x$y+shot_attempt_density_x$y
-goal_shot_prob_x<-(goal_density_x$y/total_shots)*100
+total_shots_x<-goal_density_x$y+shot_attempt_density_x$y
+goal_shot_prob_x<-(goal_density_x$y/total_shots)
 
 plot(goal_density_x)
 plot(shot_density_x)
-plot(goal_shot_prob_x, ylim=c(0,100))
+plot(goal_shot_prob_x, xlim=c(60, 100), ylim=c(0,1))
+
+#Goal percentage y-coordinate
+goal_density_y<-density(goals_clean$y.Start,
+                        n=100, from=0, to=100)
+shot_attempt_density_y<-density(shot_attempts_clean$y.Start,
+                         n=100, from=0, to=100)
+
+goal_density_y$y=goal_density_y$n/sum(goal_density_y$y)*goal_density_y$y
+shot_attempt_density_y$y=shot_attempt_density_y$n/sum(shot_attempt_density_y$y)*shot_attempt_density_y$y
+total_shots_y<-goal_density_y$y+shot_attempt_density_y$y
+goal_shot_prob_y<-(goal_density_y$y/total_shots_y)
+
+plot(goal_density_y)
+plot(shot_attempt_density_y)
+plot(goal_shot_prob_y, xlim=c(0, 100), ylim=c(0,1))
+
+#Assist:Key pass ratio
+assist_density_length<-density(assists_clean$assist_dist,
+                               n=100, from = 0, to = 100)
+key_pass_density_length<-density(key_passes_clean$keypass_dist,
+                                 n=100, from = 0, to = 100)
+
+assist_density_length$y=assist_density_length$n/sum(assist_density_length$y)*assist_density_length$y
+key_pass_density_length$y=key_pass_density_length$n/sum(key_pass_density_length$y)*key_pass_density_length$y
+total_keyassists=assist_density_length$y+key_pass_density_length$y
+assist_prob_length=assist_density_length$y/total_keyassists
+
+plot(assist_density_length)
+plot(key_pass_density_length)
+plot(assist_prob_length, ylim=c(0,1))
+
+#Assist:key pass ratio x-coordinate
+assist_density_x<-density(assists_clean$x.Start,
+                          n=100, from = 0, to = 100)
+key_pass_density_x<-density(key_passes_clean$x.Start,
+                            n=100, from = 0, to = 100)
+assist_density_x$y=assist_density_x$n/sum(assist_density_x$y)*assist_density_x$y
+key_pass_density_x$y=key_pass_density_x$n/sum(key_pass_density_x$y)*key_pass_density_x$y
+total_keyassists_x=assist_density_x$y+key_pass_density_x$y
+assist_prob_x=assist_density_x$y/total_keyassists_x
+
+plot(assist_density_x)
+plot(key_pass_density_x)
+plot(assist_prob_x, ylim=c(0,1))
+
+#Assist:key pass ratio y-coordinate
+assist_density_y<-density(assists_clean$y.Start,
+                          n=100, from = 0, to = 100)
+key_pass_density_y<-density(key_passes_clean$y.Start,
+                            n=100, from = 0, to = 100)
+
+assist_density_y$y=assist_density_y$n/sum(assist_density_y$y)*assist_density_y$y
+key_pass_density_y$y=key_pass_density_y$n/sum(key_pass_density_y$y)*key_pass_density_y$y
+total_keyassists_y=assist_density_y$y+key_pass_density_y$y
+assist_prob_y=assist_density_y$y/total_keyassists_y
+
+plot(assist_density_y)
+plot(key_pass_density_y)
+plot(assist_prob_y, ylim=c(0,1))
+
 ```
 
-
-```{r}
-xkabledply(head(event_data))
-head(event_data)
-```
