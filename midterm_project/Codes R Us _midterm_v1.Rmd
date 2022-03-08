@@ -391,4 +391,36 @@ dev.off()
 
 ```
 
-The plots show some differences among teams. We continue by formalizing this comparison using an anova test.
+The plots show some differences among teams. We continue by looking at these differences using an anova test.
+
+```{r}
+# install.packages("rstatix")
+library(rstatix)
+
+# Assist and Key Pass Distance
+assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
+
+capture.output(assist_key_pass_dist, file = "anova.txt", append = T)
+
+# Shots and Goals Distance
+shots_goals_dist <- shots_goals_wc_top5 %>% anova_test(dist ~ Team.Name)
+
+capture.output(shots_goals_dist, file = "anova.txt", append = T)
+
+# Shots and Goals X.Start
+shots_goals_x <- shots_goals_wc_top5 %>% anova_test(x.Start ~ Team.Name)
+
+capture.output(shots_goals_x, file = "anova.txt", append = T)
+
+# Shots and Goals Y.Start
+shots_goals_y <- shots_goals_wc_top5 %>% anova_test(y.Start ~ Team.Name)
+
+capture.output(shots_goals_y, file = "anova.txt", append = T)
+
+```
+Based on the anova tests, the top 5 teams (defined by event frequencies) have some significant differences in means of distances and start coordinates for the following variables:
+
+1. Shots + Goals Distance
+2. Shots + Goals Y.Start
+
+Concluding Statement: Based on t-tests done between Shots vs Goals, and Assists vs Key Passes, there is evidence of distance and start coordinate differences between successful and unsuccessful plays. Applying this finding to the top 5 teams in the World Cup, we see further that there are teams that are significantly different in their tendencies for distance and Y.Start when it comes to attempting a goal.
