@@ -25,12 +25,25 @@ options(scientific=T, digits = 3)
 ```{r load data}
 #Load Event data from each competition as a dataframe
 england<-data.frame(read.csv('./datasets/events_England_new.csv'))
+england$competition <- "England"
+
 italy<-data.frame(read.csv('./datasets/events_Italy_new.csv'))
+italy$competition <- "Italy"
+
 germany<-data.frame(read.csv('./datasets/events_Germany_new.csv'))
+germany$competition <- "Germany"
+
 france<-data.frame(read.csv('./datasets/events_France_new.csv'))
+france$competition <- "France"
+
 spain<-data.frame(read.csv('./datasets/events_Spain_new.csv'))
+spain$competition <- "Spain"
+
 european<-data.frame(read.csv('./datasets/events_European_Championship_new.csv'))
+european$competition <- "European"
+
 worldcup<-data.frame(read.csv('./datasets/events_World_Cup_new.csv'))
+worldcup$competition <- "World Cup"
                      
 ```
 
@@ -42,7 +55,7 @@ head(event_data)
 tail(event_data)
 ```
 
-There are a total of 3,251,294 events and 18 variables. We continue by converting data types where needed.
+There are a total of 3,251,294 events and 19 variables. We continue by converting data types where needed.
 
 ```{r convert variables}
 #convert x and y coordinate columns from characters to integer values
