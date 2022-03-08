@@ -292,55 +292,30 @@ Upon reviewing the plots, it appears that there are some differences between som
 
 ttest_assist_v_keypass_dist <- t.test(assists_clean$dist, key_passes_clean$dist)
 
-ttest_assist_v_keypass_dist
-
-capture.output(ttest_assist_v_keypass_dist, file = "ttest_assist_v_keypass_dist.txt")
+capture.output(ttest_assist_v_keypass_dist, file = "ttests.txt", append = T)
 
 ttest_goals_v_shots_dist <- t.test(goals_clean$dist, shots_clean$dist)
 
-ttest_goals_v_shots_dist
+capture.output(ttest_goals_v_shots_dist, file = "ttests.txt", append = T)
 
 #Starting X-coordinate
 
 ttest_assist_v_keypass_x <- t.test(assists_clean_x$x.Start, key_passes_clean_x$x.Start)
 
-ttest_assist_v_keypass_x
+capture.output(ttest_assist_v_keypass_x, file = "ttests.txt", append = T)
 
 ttest_goals_v_shots_x <- t.test(goals_clean$x.Start, shots_clean$x.Start)
 
-ttest_goals_v_shots_x
+capture.output(ttest_goals_v_shots_x, file = "ttests.txt", append = T)
 
 #Starting Y-coordinate
 
 ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, key_passes_clean_y$y.Start)
 
-ttest_assist_v_keypass_y
+capture.output(ttest_assist_v_keypass_y, file = "ttests.txt", append = T)
 
 ttest_goals_v_shots_y <- t.test(goals_clean$y.Start, shots_clean$y.Start)
 
-ttest_goals_v_shots_y
+capture.output(ttest_goals_v_shots_y, file = "ttests.txt", append = T)
 
-```
-
-ttest95_assists<-t.test(assists_clean$assist_dist, mu=mean(key_passes_clean$keypass_dist), conf.level=0.95)
-ttest95_assists
-ttest95_goals_x<-t.test(goals_clean$x.Start, mu=mean(shots_clean$x.Start), conf.level = 0.95)
-ttest95_goals_x
-ttest95_goals_y<-t.test(goals_clean$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
-ttest95_goals_y
-```
-```{r Dividing histograms to get ratios}
-hist_goals<-hist(goals_clean$x.Start)
-hist_shots<-hist(shots_clean$x.Start)
-hist_goals_counts<-hist_goals$counts
-hist_shots_counts<-hist_shots$counts
-hist_goalshot_ratio<-hist_goals_counts/hist_shots_counts
-
-ggplot+
-  geom_histogram()
-```
-
-```{r}
-xkabledply(head(event_data))
-head(event_data)
 ```
