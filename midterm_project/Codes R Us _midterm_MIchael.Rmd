@@ -11,6 +11,7 @@ library(ggplot2)
 library(ggsoccer)
 library(dplyr)
 library(rayshader)
+library(multimode)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
@@ -23,13 +24,13 @@ options(scientific=T, digits = 3)
 
 ```{r load data}
 #Load Event data from each competition as a dataframe
-england<-data.frame(read.csv('./datasets/events_England.csv'))
-italy<-data.frame(read.csv('./datasets/events_Italy.csv'))
-germany<-data.frame(read.csv('./datasets/events_Germany.csv'))
-france<-data.frame(read.csv('./datasets/events_France.csv'))
-spain<-data.frame(read.csv('./datasets/events_Spain.csv'))
-european<-data.frame(read.csv('./datasets/events_European_Championship.csv'))
-worldcup<-data.frame(read.csv('./datasets/events_World_Cup.csv'))
+england<-data.frame(read.csv('./datasets/events_England_clean.csv'))
+italy<-data.frame(read.csv('./datasets/events_Italy_clean.csv'))
+germany<-data.frame(read.csv('./datasets/events_Germany_clean.csv'))
+france<-data.frame(read.csv('./datasets/events_France_clean.csv'))
+spain<-data.frame(read.csv('./datasets/events_Spain_clean.csv'))
+european<-data.frame(read.csv('./datasets/events_European_Championship_clean.csv'))
+worldcup<-data.frame(read.csv('./datasets/events_World_Cup_clean.csv'))
 event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
 ```
 
@@ -84,6 +85,51 @@ shot_attempts_clean<-outlierKD2(shot_attempts, x.Start, rm=TRUE, boxplt = TRUE, 
 shot_attempts_clean<-na.omit(shot_attempts_clean)
 goals_clean<-outlierKD2(goals, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 goals_clean<-na.omit(goals_clean)
+```
+```{r checking #modes of distributions}
+#assist/keypass length modes:
+assist_modes_length<-modetest(assists_clean$assist_dist)
+assist_modes_length
+key_pass_modes_length<-modetest(key_passes_clean$keypass_dist)
+key_pass_modes_length
+
+#assist/keypass x,y-coordinate modes:
+assist_modes_x<-modetest(assists_clean_x$x.Start)
+assist_modes_y<-modetest(assists_clean_y$y.Start)
+key_pass_modes_x<-modetest(key_passes_clean_x$x.Start)
+key_pass_modes_y<-modetest(key_passes_clean_x$y.Start)
+assist_modes_x
+assist_modes_y
+key_pass_modes_x
+key_pass_modes_y
+
+#goals/shots x,y-coordinate modes:
+goals_modes_x<-modetest(goals_clean$x.Start)
+goals_modes_y<-modetest(goals_clean$y.Start)
+#shots_modes_x<-modetest(shots_clean$x.Start)
+#shots_modes_y<-modetest(shots_clean$y.Start)
+goals_modes_x
+goals_modes_y
+#shots_modes_x
+#shots_modes_y
+
+```
+```{r locate modes}
+#assist/keypass length mode location:
+#assist_modes_length_loc<-locmodes(assists_clean$assist_dist)
+#assist_modes_length_loc
+#key_pass_modes_length_loc<-locmodes(key_passes_clean$keypass_dist)
+#key_pass_modes_length_loc
+
+#assist/keypass x,y-coordinate mode location:
+#assist_modes_x_loc<-locmodes(assists_clean_x$x.Start)
+assist_modes_y_loc<-locmodes(assists_clean_y$y.Start, mod0 = 2, display=TRUE)
+#key_pass_modes_x_loc<-locmodes(key_passes_clean_x$x.Start)
+key_pass_modes_y_loc<-locmodes(key_passes_clean_x$y.Start, mod0 = 2, display = TRUE)
+#assist_modes_x_loc
+assist_modes_y_loc
+#key_pass_modes_x_loc
+key_pass_modes_y_loc
 ```
 
 ```{r check distributions of each event type}
@@ -174,7 +220,11 @@ goal_shot_prob_x<-(goal_density_x$y/total_shots_x)
 
 plot(goal_density_x)
 plot(shot_attempt_density_x)
-plot(goal_shot_prob_x, xlim=c(60, 100), ylim=c(0,1))
+plot(goal_shot_prob_x, 
+     xlim=c(60, 100), ylim=c(0,1),
+     xlab='Field Length Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of Shot resulting in a goal vs x-coordinate of shot')
 
 #Goal percentage y-coordinate
 goal_density_y<-density(goals_clean$y.Start,
@@ -189,7 +239,11 @@ goal_shot_prob_y<-(goal_density_y$y/total_shots_y)
 
 plot(goal_density_y)
 plot(shot_attempt_density_y)
-plot(goal_shot_prob_y, xlim=c(0, 100), ylim=c(0,1))
+plot(goal_shot_prob_y, 
+     xlim=c(0, 100), ylim=c(0,1),
+     xlab='Field Width Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of Shot resulting in a goal vs y-coordinate of shot')
 
 #Assist:Key pass ratio
 assist_density_length<-density(assists_clean$assist_dist,
@@ -204,12 +258,15 @@ assist_prob_length=assist_density_length$y/total_keyassists
 
 plot(assist_density_length)
 plot(key_pass_density_length)
-plot(assist_prob_length, ylim=c(0,1))
+plot(assist_prob_length, ylim=c(0,1),
+     xlab='Pass Distance',
+     ylab='Goal Probability',
+     main = 'Probability of pass resulting in a goal vs distance of pass')
 
 #Assist:key pass ratio x-coordinate
-assist_density_x<-density(assists_clean$x.Start,
+assist_density_x<-density(assists_clean_x$x.Start,
                           n=100, from = 0, to = 100)
-key_pass_density_x<-density(key_passes_clean$x.Start,
+key_pass_density_x<-density(key_passes_clean_x$x.Start,
                             n=100, from = 0, to = 100)
 assist_density_x$y=assist_density_x$n/sum(assist_density_x$y)*assist_density_x$y
 key_pass_density_x$y=key_pass_density_x$n/sum(key_pass_density_x$y)*key_pass_density_x$y
@@ -218,12 +275,16 @@ assist_prob_x=assist_density_x$y/total_keyassists_x
 
 plot(assist_density_x)
 plot(key_pass_density_x)
-plot(assist_prob_x, ylim=c(0,1))
+plot(assist_prob_x, 
+     xlim=c(50, 100), ylim=c(0,1),
+     xlab='Field Length Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of pass resulting in a goal vs x-coordinate of pass')
 
 #Assist:key pass ratio y-coordinate
-assist_density_y<-density(assists_clean$y.Start,
+assist_density_y<-density(assists_clean_y$y.Start,
                           n=100, from = 0, to = 100)
-key_pass_density_y<-density(key_passes_clean$y.Start,
+key_pass_density_y<-density(key_passes_clean_y$y.Start,
                             n=100, from = 0, to = 100)
 
 assist_density_y$y=assist_density_y$n/sum(assist_density_y$y)*assist_density_y$y
@@ -233,9 +294,13 @@ assist_prob_y=assist_density_y$y/total_keyassists_y
 
 plot(assist_density_y)
 plot(key_pass_density_y)
-plot(assist_prob_y, ylim=c(0,1))
+plot(assist_prob_y, ylim=c(0,1),
+     xlab='Field Width Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of pass resulting in a goal vs y-coordinate of pass')
 
 ```
+
 ```{r putting probabilities into dataframe}
 success_prob<-data.frame('field_loc'=goal_density_x$x, 
                          'goal_prob_x'=goal_shot_prob_x,
