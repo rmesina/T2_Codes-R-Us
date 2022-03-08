@@ -319,3 +319,12 @@ ttest_goals_v_shots_y <- t.test(goals_clean$y.Start, shots_clean$y.Start)
 capture.output(ttest_goals_v_shots_y, file = "ttests.txt", append = T)
 
 ```
+
+Based on the t-tests, the following variables have significantly different means at the 95% level.
+
+1. Assist v. Key Pass Distance
+2. Goal v. Shot Distance
+3. Goal v. Shot x.Start
+4. Goal v. Shot y.Start
+
+Are these differences significant for a
