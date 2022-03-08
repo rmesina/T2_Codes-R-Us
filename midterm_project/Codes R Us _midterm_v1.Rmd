@@ -390,3 +390,5 @@ boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, main = "Y.S
 dev.off()
 
 ```
+
+The plots show some differences among teams. We continue by formalizing this comparison using an anova test.
