@@ -10,6 +10,7 @@ library(ezids)
 library(ggplot2)
 library(ggsoccer)
 library(dplyr)
+library(rayshader)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
@@ -169,10 +170,10 @@ shot_attempt_density_x<-density(shot_attempts_clean$x.Start,
 goal_density_x$y=goal_density_x$n/sum(goal_density_x$y)*goal_density_x$y
 shot_attempt_density_x$y<-shot_attempt_density_x$n/sum(shot_attempt_density_x$y)*shot_attempt_density_x$y
 total_shots_x<-goal_density_x$y+shot_attempt_density_x$y
-goal_shot_prob_x<-(goal_density_x$y/total_shots)
+goal_shot_prob_x<-(goal_density_x$y/total_shots_x)
 
 plot(goal_density_x)
-plot(shot_density_x)
+plot(shot_attempt_density_x)
 plot(goal_shot_prob_x, xlim=c(60, 100), ylim=c(0,1))
 
 #Goal percentage y-coordinate
@@ -235,4 +236,17 @@ plot(key_pass_density_y)
 plot(assist_prob_y, ylim=c(0,1))
 
 ```
+```{r putting probabilities into dataframe}
+success_prob<-data.frame('field_loc'=goal_density_x$x, 
+                         'goal_prob_x'=goal_shot_prob_x,
+                         'goal_prob_y'=goal_shot_prob_y,
+                         'goal_prob_xy'=goal_shot_prob_x*goal_shot_prob_y,
+                         'assist_prob_x'=assist_prob_x,
+                         'assist_prob_y'=assist_prob_y,
+                         'assist_prob_xy'=assist_prob_x*assist_prob_y,
+                         'assist_prob_length'=assist_prob_length
+                            )
+success_prob[is.na(success_prob)]=0
 
+success_prob_goals<-ggplot(success_prob, aes(x=))
+```
