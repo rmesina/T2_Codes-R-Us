@@ -1,6 +1,17 @@
 ---
 title: "CodesRUs_midterm"
-output: html_document
+authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
+date: "March 9, 2022"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
 ---
 
 ```{r setup, include=FALSE}
@@ -18,11 +29,16 @@ options(scientific=T, digits = 3)
 # use scipen=999 to prevent scientific notation at all times
 ```
 
-## R Markdown
+# R Markdown - Exploratory Data Analysis of Soccer Event Data Codes
 
-1. Import datasets
+**SMART Question:** Based on the matches played during the 2017/2018 season for Europe’s top five leagues, the 2016 European Championship, and the 2018 World Cup, which match variables (ex: shot location, assist location, assist duration, etc…) result in the highest probability of a shot on goal being successful, result in a goal?
 
-```{r load data}
+## Importing Data:
+
+**Dataset:** The dataset contains all matches played in Europe’s top five leagues during the 2017/2018 season (380 matches per league for a total of 1900 matches, producing 643,149 match events), the 2016 European Championship (51 matches, producing 78,139 match events), and the 2018 World Cup (64 matches, 101,758 match events). It was obtained from the work posted by Luca Pappalardo on Figshare.
+
+The data is imported by league and then compiled into a single event_data dataframe, giving a total of 3,251,294 events and 19 variables
+```{r load data, results='markup', out.width='50%'}
 #Load Event data from each competition as a dataframe
 england<-data.frame(read.csv('./datasets/events_England_new.csv'))
 england$competition <- "England"
@@ -45,17 +61,15 @@ european$competition <- "European"
 worldcup<-data.frame(read.csv('./datasets/events_World_Cup_new.csv'))
 worldcup$competition <- "World Cup"
                      
-```
-
-```{r combine data frames}
 #Append dataframes into a single dataframe from which to draw.
 event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
-str(event_data)
-head(event_data)
-tail(event_data)
+#str(event_data)
+xkabledplyhead(event_data)
+#tail(event_data)
 ```
 
-There are a total of 3,251,294 events and 19 variables. We continue by converting data types where needed.
+## Cleaning Data:
+X and Y coordinates had been imported as characters. We therefore converted them to numeric to allow us to work with them. Event Name and Subevent Name are have also been converted to factor. 
 
 ```{r convert variables}
 #convert x and y coordinate columns from characters to integer values
@@ -65,15 +79,25 @@ event_data$y.End <- as.numeric(event_data$y.End)
 event_data$x.Start <- as.numeric(event_data$x.Start)
 event_data$y.Start <- as.numeric(event_data$y.Start)
 
-#convert event and subevent labels to factors
+#convert event, subevent, tags, players, team labels, etc... to factors
 event_data$Event.Name=as.factor(event_data$Event.Name)
 event_data$Subevent.Name=as.factor(event_data$Subevent.Name)
+event_data$Match.Period=as.factor(event_data$Match.Period)
+event_data$Match.Date=as.factor(event_data$Match.Date)
+event_data$Player=as.factor(event_data$Player)
+event_data$Team.Name=as.factor(event_data$Team.Name)
+event_data$Tag.1=as.factor(event_data$Tag.1)
+event_data$Tag.2=as.factor(event_data$Tag.2)
+event_data$Tag.3=as.factor(event_data$Tag.3)
+event_data$Tag.4=as.factor(event_data$Tag.4)
+event_data$Tag.5=as.factor(event_data$Tag.5)
+event_data$Tag.6=as.factor(event_data$Tag.6)
 
 str(event_data)
 ```
 
-X and Y coordinates have been successfully converted to numeric. Event Name and Subevent Name are have also been converted to factor. We continue by calculating distance for relevant variables of interest.
-
+## Calculating and Adding Event Distance Variable:
+One variable we are interested in looking at is the distance of assists and key passes and whether this plays a role in the success of the pass and whether it results in a successful shot on goal or not. We have to calculate distance for each event using the x,y-coordinates given in the data set.
 
 ```{r calculate distance}
 
@@ -85,11 +109,17 @@ summary(event_data$dist)
 str(event_data)
 ```
 
-Distance has been calculated. Continue by creating separate dataframes for each event of interest.
+## Subsetting Data:
+Separate data frames are created for each of the following events of interest:  
+1. Shots: unsuccessful shots on goal  
+2. goals: successful shots on goal  
+3. assists: pass leading to a goal  
+4. key passes: pass leading to unsuccessful scoring opportunity  
 
 ```{r event datasets}
 #Collect shots, goals, assists, and key passes into their own dataframes
 shots<-subset(event_data, Event.Name=='Shot')
+shots<-subset(shots, Tag.1!='Goal')
 goals<-subset(event_data, Tag.1=='Goal')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
@@ -101,79 +131,68 @@ head(key_passes)
 
 ```
 
-For each event of interest, check for and remove outliers.
+## Checking Each Variable for Outliers:
+We checked each variable of interest for outliers and removed them. **Figure 1.**, below, shows the outlier check for the assist distance variable. Many outliers are seen at the high end of the histogram resulting in a skewed distribution. This is also seen in both the q-q plot and the boxplot. After removing the outliers, a better normal distribution is seen. This was done to the following variables of interest:
+1. Assists distance
+2. Assists x & y-coordinates
+3. Key passes distance
+4. Key passes x & y-coordinates
+5. Shots x & y-coordinates
+6. Goals x & y-coordinates
 
 ```{r checking for outliers}
+#Set to TRUE of all plots for each varialbe want to be seen.
+show_all_plots=FALSE
+
 assists_clean<-outlierKD2(assists, dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean<-na.omit(assists_clean)
 
-assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, 
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
 assists_clean_x<-na.omit(assists_clean_x)
 
-assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, 
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
 assists_clean_y<-na.omit(assists_clean_y)
 
-key_passes_clean<-outlierKD2(key_passes, dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+key_passes_clean<-outlierKD2(key_passes, dist, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
 key_passes_clean<-na.omit(key_passes_clean)
 
-key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
 key_passes_clean_x<-na.omit(key_passes_clean_x)
 
-key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
 key_passes_clean_y<-na.omit(key_passes_clean_y)
 
-shots_clean<-outlierKD2(shots, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+shots_clean<-outlierKD2(shots, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
 shots_clean<-na.omit(shots_clean)
 
-goals_clean<-outlierKD2(goals, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
+goals_clean<-outlierKD2(goals, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
 goals_clean<-na.omit(goals_clean)
 
 ```
+**Figure 1.** Outlier check for assist distance variable.
 
-Quick visual of the field: Plot start position and distance of each event.
-
-```{r quick visuals}
-
-#Shots
-jpeg(file="shots_start.jpeg")
-plot(shots_clean$x.Start,shots_clean$y.Start,main='Start Position of Shots', xlab = 'x.Start', ylab = 'y.Start')
-dev.off()
-
-jpeg(file="shots_dist.jpeg")
-hist(shots_clean$dist, main='Distance of Shots', xlab = 'Shot Distance')
-dev.off()
-
-#Goals
-jpeg(file="goals_start.jpeg")
-plot(goals_clean$x.Start,goals_clean$y.Start,main='Start Position of Goals', xlab = 'x.Start', ylab = 'y.Start')
-dev.off()
-
-jpeg(file="goals_dist.jpeg")
-hist(goals_clean$dist, main='Distance of Shots Leading to Goals', xlab = 'Shot Distance')
-dev.off()
-
-#Assists
-
-jpeg(file="assists_start.jpeg")
-plot(assists_clean$x.Start,assists_clean$y.Start,main='Start Position of Assists', xlab = 'x.Start', ylab = 'y.Start')
-dev.off()
-
-jpeg(file="assists_dist.jpeg")
-hist(assists_clean$dist, main='Distance of Assists', xlab = 'Shot Distance')
-dev.off()
-
-#Key Passes
-
-jpeg(file="keypass_start.jpeg")
-plot(key_passes_clean$x.Start,key_passes_clean$y.Start,main='Start Position of Key Passes', xlab = 'x.Start', ylab = 'y.Start')
-dev.off()
-
-jpeg(file="keypass_dist.jpeg")
-hist(key_passes_clean$dist, main='Distance of Key Passes', xlab = 'Shot Distance')
-dev.off()
-```
-
-Visualize distributions of variables of interest.
+## Visualizing Variable Distributions.
 
 ```{r viz dist}
 
@@ -424,3 +443,46 @@ Based on the anova tests, the top 5 teams (defined by event frequencies) have so
 2. Shots + Goals Y.Start
 
 Concluding Statement: Based on t-tests done between Shots vs Goals, and Assists vs Key Passes, there is evidence of distance and start coordinate differences between successful and unsuccessful plays. Applying this finding to the top 5 teams in the World Cup, we see further that there are teams that are significantly different in their tendencies for distance and Y.Start when it comes to attempting a goal.
+
+
+jpeg files
+```{r quick visuals}
+
+#Shots
+jpeg(file="shots_start.jpeg")
+plot(shots_clean$x.Start,shots_clean$y.Start,main='Start Position of Shots', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="shots_dist.jpeg")
+hist(shots_clean$dist, main='Distance of Shots', xlab = 'Shot Distance')
+dev.off()
+
+#Goals
+jpeg(file="goals_start.jpeg")
+plot(goals_clean$x.Start,goals_clean$y.Start,main='Start Position of Goals', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="goals_dist.jpeg")
+hist(goals_clean$dist, main='Distance of Shots Leading to Goals', xlab = 'Shot Distance')
+dev.off()
+
+#Assists
+
+jpeg(file="assists_start.jpeg")
+plot(assists_clean$x.Start,assists_clean$y.Start,main='Start Position of Assists', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="assists_dist.jpeg")
+hist(assists_clean$dist, main='Distance of Assists', xlab = 'Shot Distance')
+dev.off()
+
+#Key Passes
+
+jpeg(file="keypass_start.jpeg")
+plot(key_passes_clean$x.Start,key_passes_clean$y.Start,main='Start Position of Key Passes', xlab = 'x.Start', ylab = 'y.Start')
+dev.off()
+
+jpeg(file="keypass_dist.jpeg")
+hist(key_passes_clean$dist, main='Distance of Key Passes', xlab = 'Shot Distance')
+dev.off()
+```
