@@ -25,12 +25,25 @@ options(scientific=T, digits = 3)
 ```{r load data}
 #Load Event data from each competition as a dataframe
 england<-data.frame(read.csv('./datasets/events_England_new.csv'))
+england$competition <- "England"
+
 italy<-data.frame(read.csv('./datasets/events_Italy_new.csv'))
+italy$competition <- "Italy"
+
 germany<-data.frame(read.csv('./datasets/events_Germany_new.csv'))
+germany$competition <- "Germany"
+
 france<-data.frame(read.csv('./datasets/events_France_new.csv'))
+france$competition <- "France"
+
 spain<-data.frame(read.csv('./datasets/events_Spain_new.csv'))
+spain$competition <- "Spain"
+
 european<-data.frame(read.csv('./datasets/events_European_Championship_new.csv'))
+european$competition <- "European"
+
 worldcup<-data.frame(read.csv('./datasets/events_World_Cup_new.csv'))
+worldcup$competition <- "World Cup"
                      
 ```
 
@@ -42,7 +55,7 @@ head(event_data)
 tail(event_data)
 ```
 
-There are a total of 3,251,294 events and 18 variables. We continue by converting data types where needed.
+There are a total of 3,251,294 events and 19 variables. We continue by converting data types where needed.
 
 ```{r convert variables}
 #convert x and y coordinate columns from characters to integer values
@@ -284,26 +297,96 @@ ggplot()+
 ggsave("shots_goals_y.jpeg")
 ```
 
-```{r hypothesis testing}
-ttest95_assists<-t.test(assists_clean$assist_dist, mu=mean(key_passes_clean$keypass_dist), conf.level=0.95)
-ttest95_assists
-ttest95_goals_x<-t.test(goals_clean$x.Start, mu=mean(shots_clean$x.Start), conf.level = 0.95)
-ttest95_goals_x
-ttest95_goals_y<-t.test(goals_clean$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
-ttest95_goals_y
-```
-```{r Dividing histograms to get ratios}
-hist_goals<-hist(goals_clean$x.Start)
-hist_shots<-hist(shots_clean$x.Start)
-hist_goals_counts<-hist_goals$counts
-hist_shots_counts<-hist_shots$counts
-hist_goalshot_ratio<-hist_goals_counts/hist_shots_counts
+Upon reviewing the plots, it appears that there are some differences between some variables. We will continue by performing some hypothesis tests.
 
-ggplot+
-  geom_histogram()
+```{r hypothesis testing}
+
+#Distance
+
+ttest_assist_v_keypass_dist <- t.test(assists_clean$dist, key_passes_clean$dist)
+
+capture.output(ttest_assist_v_keypass_dist, file = "ttests.txt", append = T)
+
+ttest_goals_v_shots_dist <- t.test(goals_clean$dist, shots_clean$dist)
+
+capture.output(ttest_goals_v_shots_dist, file = "ttests.txt", append = T)
+
+#Starting X-coordinate
+
+ttest_assist_v_keypass_x <- t.test(assists_clean_x$x.Start, key_passes_clean_x$x.Start)
+
+capture.output(ttest_assist_v_keypass_x, file = "ttests.txt", append = T)
+
+ttest_goals_v_shots_x <- t.test(goals_clean$x.Start, shots_clean$x.Start)
+
+capture.output(ttest_goals_v_shots_x, file = "ttests.txt", append = T)
+
+#Starting Y-coordinate
+
+ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, key_passes_clean_y$y.Start)
+
+capture.output(ttest_assist_v_keypass_y, file = "ttests.txt", append = T)
+
+ttest_goals_v_shots_y <- t.test(goals_clean$y.Start, shots_clean$y.Start)
+
+capture.output(ttest_goals_v_shots_y, file = "ttests.txt", append = T)
+
 ```
+
+Based on the t-tests, the following variables have significantly different means at the 95% level.
+
+1. Assist v. Key Pass Distance (higher mean for key pass)
+2. Goal v. Shot Distance (higher mean for goals)
+3. Goal v. Shot x.Start (higher mean for goals)
+4. Goal v. Shot y.Start (higher mean for goals)
+
+Based on this finding, it must be the case that teams consider strategies such as planning their starting points or practicing the accuracy of their shots in order to cover a desirable distance.
+
+Regardless of the result (goal v shot, assist v key pass), how do each team's distance and starting points compare to other teams? Let's take a look at the World Cup in particular.
 
 ```{r}
-xkabledply(head(event_data))
-head(event_data)
+# Stack assist and key pass dataset
+
+assist_key_pass <-rbind(assists_clean, key_passes_clean)
+assist_key_pass_wc <- subset(assist_key_pass, competition=="World Cup")
+
+str(assist_key_pass_wc)
+head(assist_key_pass_wc)
+
+# Focus on top 5 teams with most assists + key passes
+freq1 <- sort(table(assist_key_pass_wc$Team.Name),decreasing=T)
+print(freq1)
+
+assist_key_pass_wc_top5 <- subset(assist_key_pass_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
+
+jpeg(file="assist_key_pass_wc_dist.jpeg")
+boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, main = "Assist or Key Pass Distance by Team", ylab = "Distance", xlab = "Team")
+dev.off()
+
+# Stack shot and goal dataset
+
+shots_goals <-rbind(shots_clean, goals_clean)
+shots_goals_wc <- subset(shots_goals, competition=="World Cup")
+
+str(shots_goals_wc)
+head(shots_goals_wc)
+
+# Focus on top 5 teams with most goals + shots
+freq2 <- sort(table(shots_goals_wc$Team.Name),decreasing=T)
+print(freq2)
+
+shots_goals_wc_top5 <- subset(shots_goals_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
+
+jpeg(file="shots_goals_wc_dist.jpeg")
+boxplot(shots_goals_wc_top5$dist ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal Distance by Team", ylab = "Distance", xlab = "Team")
+dev.off()
+
+jpeg(file="shots_goals_wc_x.jpeg")
+boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name, main = "X.Start by Team", ylab = "X.Start", xlab = "Team")
+dev.off()
+
+jpeg(file="shots_goals_wc_y.jpeg")
+boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, main = "Y.Start by Team", ylab = "Y.Start", xlab = "Team")
+dev.off()
+
 ```
