@@ -522,10 +522,12 @@ head(assist_key_pass_wc)
 freq1 <- sort(table(assist_key_pass_wc$Team.Name),decreasing=T)
 print(freq1)
 
+assist_key_pass_wc$Team.Name <- as.character(assist_key_pass_wc$Team.Name)
+
 assist_key_pass_wc_top5 <- subset(assist_key_pass_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
 
 jpeg(file="assist_key_pass_wc_dist.jpeg")
-boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, main = "Assist or Key Pass Distance by Team", ylab = "Distance", xlab = "Team")
+boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, main = "Assist or Key Pass Distance by Team", ylab = "Distance", xlab = "Team", col=c("red","orange","yellow","green","blue"))
 dev.off()
 
 # Stack shot and goal dataset
@@ -540,18 +542,20 @@ head(shots_goals_wc)
 freq2 <- sort(table(shots_goals_wc$Team.Name),decreasing=T)
 print(freq2)
 
+shots_goals_wc$Team.Name <- as.character(shots_goals_wc$Team.Name)
+
 shots_goals_wc_top5 <- subset(shots_goals_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
 
 jpeg(file="shots_goals_wc_dist.jpeg")
-boxplot(shots_goals_wc_top5$dist ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal Distance by Team", ylab = "Distance", xlab = "Team")
+boxplot(shots_goals_wc_top5$dist ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal Distance by Team", ylab = "Distance", xlab = "Team", col=c("red","orange","yellow","green","blue"))
 dev.off()
 
 jpeg(file="shots_goals_wc_x.jpeg")
-boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name, main = "X.Start by Team", ylab = "X.Start", xlab = "Team")
+boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal X.Start by Team", ylab = "X.Start", xlab = "Team", col=c("red","orange","yellow","green","blue"))
 dev.off()
 
 jpeg(file="shots_goals_wc_y.jpeg")
-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, main = "Y.Start by Team", ylab = "Y.Start", xlab = "Team")
+boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal Y.Start by Team", ylab = "Y.Start", xlab = "Team", col=c("red","orange","yellow","green","blue"))
 dev.off()
 
 ```
@@ -608,7 +612,10 @@ Further work to be included in final report:
 
 #Shots
 jpeg(file="shots_start.jpeg")
-plot(shots_clean$x.Start,shots_clean$y.Start,main='Start Position of Shots', xlab = 'x.Start', ylab = 'y.Start')
+ggplot(shots_clean) +
+  annotate_pitch() +
+  theme_pitch() +
+  geom_point(aes(x = shots_clean$x.Start, y = shots_clean$y.Start))
 dev.off()
 
 jpeg(file="shots_dist.jpeg")
@@ -617,7 +624,10 @@ dev.off()
 
 #Goals
 jpeg(file="goals_start.jpeg")
-plot(goals_clean$x.Start,goals_clean$y.Start,main='Start Position of Goals', xlab = 'x.Start', ylab = 'y.Start')
+ggplot(goals_clean) +
+  annotate_pitch() +
+  theme_pitch() +
+  geom_point(aes(x = goals_clean$x.Start, y = goals_clean$y.Start))
 dev.off()
 
 jpeg(file="goals_dist.jpeg")
@@ -627,7 +637,10 @@ dev.off()
 #Assists
 
 jpeg(file="assists_start.jpeg")
-plot(assists_clean$x.Start,assists_clean$y.Start,main='Start Position of Assists', xlab = 'x.Start', ylab = 'y.Start')
+ggplot(assists_clean) +
+  annotate_pitch() +
+  theme_pitch() +
+  geom_point(aes(x = assists_clean$x.Start, y = assists_clean$y.Start))
 dev.off()
 
 jpeg(file="assists_dist.jpeg")
@@ -637,7 +650,10 @@ dev.off()
 #Key Passes
 
 jpeg(file="keypass_start.jpeg")
-plot(key_passes_clean$x.Start,key_passes_clean$y.Start,main='Start Position of Key Passes', xlab = 'x.Start', ylab = 'y.Start')
+ggplot(key_passes_clean) +
+  annotate_pitch() +
+  theme_pitch() +
+  geom_point(aes(x = key_passes_clean$x.Start, y = key_passes_clean$y.Start))
 dev.off()
 
 jpeg(file="keypass_dist.jpeg")
