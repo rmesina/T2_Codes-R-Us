@@ -31,7 +31,7 @@ options(scientific=T, digits = 3)
 
 # R Markdown - Exploratory Data Analysis of Soccer Event Data Codes
 
-**SMART Question:** Based on the matches played during the 2017/2018 season for Europe’s top five leagues, the 2016 European Championship, and the 2018 World Cup, which match variables (ex: shot location, assist location, assist duration, etc…) result in the highest probability of a shot on goal being successful, result in a goal?
+**SMART Question:** Based on the matches played during the 2017/2018 season for Europe’s top five leagues, the 2016 European Championship, and the 2018 World Cup, which match variables (ex: shot location, assist location, assist distance, etc…) result in the highest probability of a shot on goal being successful, result in a goal?
 
 ## Importing Data:
 
@@ -265,6 +265,30 @@ ggplot()+
         axis.title = element_text(size=14))
 
 ggsave("assist_keypass_y.jpeg")
+```
+
+```{r viz dist}
+
+#Histograms of Shot and Goal Distance
+
+ggplot()+
+  geom_histogram(data=goals_clean, aes(x=dist, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  
+  geom_histogram(data=shots_clean, aes(x=dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  
+  stat_function(fun = dnorm, args = list(mean = mean(goals_clean$dist), sd = sd(goals_clean$dist)), color='dark blue', fill='blue', size=1)+
+  
+  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$dist), sd = sd(shots_clean$dist)), color='dark red', fill='green', size=1)+
+  
+  labs(title="Distance of Goals and Shots with Normal Distribution Fit", x="Distance", y="Normalized Count")+
+  
+  scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.title = element_text(size=14))
+
+ggsave("goal_shot_dist.jpeg")
 ```
 
 ```{r}
