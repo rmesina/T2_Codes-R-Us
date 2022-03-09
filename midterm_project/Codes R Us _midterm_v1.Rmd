@@ -65,8 +65,8 @@ worldcup$competition <- "World Cup"
 event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
 #str(event_data)
 xkabledplyhead(event_data)
-#tail(event_data)
 ```
+**Table 1.** First five rows of event_data data frame.
 
 ## Cleaning Data:
 X and Y coordinates had been imported as characters. We therefore converted them to numeric to allow us to work with them. Event Name and Subevent Name are have also been converted to factor. 
@@ -110,7 +110,8 @@ str(event_data)
 ```
 
 ## Subsetting Data:
-Separate data frames are created for each of the following events of interest:  
+Separate data frames are created for each of the following events of interest: 
+
 1. Shots: unsuccessful shots on goal  
 2. goals: successful shots on goal  
 3. assists: pass leading to a goal  
@@ -121,6 +122,7 @@ Separate data frames are created for each of the following events of interest:
 shots<-subset(event_data, Event.Name=='Shot')
 shots<-subset(shots, Tag.1!='Goal')
 goals<-subset(event_data, Tag.1=='Goal')
+goals<-subset(goals, Event.Name!='Save attempt')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
 
@@ -132,7 +134,8 @@ head(key_passes)
 ```
 
 ## Checking Each Variable for Outliers:
-We checked each variable of interest for outliers and removed them. **Figure 1.**, below, shows the outlier check for the assist distance variable. Many outliers are seen at the high end of the histogram resulting in a skewed distribution. This is also seen in both the q-q plot and the boxplot. After removing the outliers, a better normal distribution is seen. This was done to the following variables of interest:
+We checked each variable of interest for outliers and removed them. **Figure 1.**, below, shows the outlier check for the assist distance variable. Many outliers are seen at the high end of the histogram resulting in a skewed distribution. This is also seen in both the q-q plot and the boxplot. After removing the outliers, a better normal distribution is seen. This was done to the following variables of interest:  
+
 1. Assists distance
 2. Assists x & y-coordinates
 3. Key passes distance
@@ -177,24 +180,49 @@ key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE,
                             qqplt = show_all_plots)
 key_passes_clean_y<-na.omit(key_passes_clean_y)
 
-shots_clean<-outlierKD2(shots, x.Start, rm=TRUE,  
+shots_clean<-outlierKD2(shots, dist, rm=TRUE,  
                             boxplt = show_all_plots, 
                             histogram = show_all_plots, 
                             qqplt = show_all_plots)
 shots_clean<-na.omit(shots_clean)
 
-goals_clean<-outlierKD2(goals, x.Start, rm=TRUE,  
+shots_clean_x<-outlierKD2(shots, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean_x<-na.omit(shots_clean_x)
+
+shots_clean_y<-outlierKD2(shots, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean_y<-na.omit(shots_clean_y)
+
+goals_clean<-outlierKD2(goals, dist, rm=TRUE,  
                             boxplt = show_all_plots, 
                             histogram = show_all_plots, 
                             qqplt = show_all_plots)
 goals_clean<-na.omit(goals_clean)
 
+goals_clean_x<-outlierKD2(goals, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean_x<-na.omit(goals_clean_x)
+
+goals_clean_y<-outlierKD2(goals, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean_y<-na.omit(goals_clean_y)
+
 ```
-**Figure 1.** Outlier check for assist distance variable.
+**Figure 1.** Outlier check for assist distance variable.  
 
 ## Visualizing Variable Distributions.
 
-```{r viz dist}
+Normalized histograms of previously specified variables are plotted and fitted with normal distributions. Upon reviewing the plots, it appears that there are some differences between some variables. We will continue by performing some hypothesis tests. Some of the distributions are also not normal.
+```{r viz dist, fig.show='hold', out.width='33%'}
 
 #Histograms of Assist and Key Pass Distance
 
@@ -216,20 +244,17 @@ ggplot()+
         axis.title = element_text(size=14))
 
 ggsave("assist_keypass_dist.jpeg")
-```
-
-```{r}
 
 #Histograms of Assist and Key Pass x Coordinates
 
 ggplot()+
-  geom_histogram(data=(assists_clean), aes(x=x.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  geom_histogram(data=(assists_clean_x), aes(x=x.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
   
-  geom_histogram(data=(key_passes_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=(key_passes_clean_x), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(assists_clean$x.Start), sd = sd(assists_clean$x.Start)), color='dark green', fill='green', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(assists_clean_x$x.Start), sd = sd(assists_clean_x$x.Start)), color='dark green', fill='green', size=1)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$x.Start), sd = sd(key_passes_clean$x.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean_x$x.Start), sd = sd(key_passes_clean_x$x.Start)), color='dark red', fill='red', size=1)+
   
   labs(title="X-coordinates of Key Passes & Assists with Normal Distribution Fits", x="x-coordinate", y="Normalized Count")+
   
@@ -241,20 +266,16 @@ ggplot()+
 
 ggsave("assist_keypass_x.jpeg")
 
-```
-
-```{r}
-
 #Histograms of Assist and Key Pass y Coordinates
 
 ggplot()+
-  geom_histogram(data=(assists_clean), aes(x=y.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  geom_histogram(data=(assists_clean_y), aes(x=y.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
   
-  geom_histogram(data=(key_passes_clean), aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=(key_passes_clean_y), aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(assists_clean$y.Start), sd = sd(assists_clean$y.Start)), color='dark green', fill='green', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(assists_clean_y$y.Start), sd = sd(assists_clean_y$y.Start)), color='dark green', fill='green', size=1)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$y.Start), sd = sd(key_passes_clean$y.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean_y$y.Start), sd = sd(key_passes_clean_y$y.Start)), color='dark red', fill='red', size=1)+
   
   labs(title="Y-coordinates of Key Passes & Assists with Normal Distribution Fits", x="y-coordinate", y="Normalized Count")+
   
@@ -266,19 +287,37 @@ ggplot()+
 
 ggsave("assist_keypass_y.jpeg")
 ```
-
-```{r}
-
+**Figure 2.** Histograms and normal distribution fits of assists (in green) and key passes (in red) (Left) pass distance, (Middle) x-coordinate, (Right) y-coordinate.  
+```{r histogram of shots and goals, fig.show='hold', out.width='33%'}
 #Histograms of shots and goals x coordinates
+ggplot()+
+  geom_histogram(data=(shots_clean), aes(x=dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  
+  geom_histogram(data=(goals_clean), aes(x=dist, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  
+  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$dist), sd = sd(shots_clean$dist)), color='dark red', fill='red', size=1)+
+  
+  stat_function(fun = dnorm, args = list(mean = mean(goals_clean$dist), sd = sd(goals_clean$dist)), color='dark blue', fill='blue', size=1)+
+  
+  labs(title="Distance of Shots & Goals with Normal Distribution Fits", x="Shot Distance", y="Normalized Count")+
+  
+  scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.title = element_text(size=14))
+
+ggsave("shots_goals_dist.jpeg")
+
 
 ggplot()+
-  geom_histogram(data=(shots_clean), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=(shots_clean_x), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   
-  geom_histogram(data=(goals_clean), aes(x=x.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  geom_histogram(data=(goals_clean_x), aes(x=x.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$x.Start), sd = sd(shots_clean$x.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(shots_clean_x$x.Start), sd = sd(shots_clean_x$x.Start)), color='dark red', fill='red', size=1)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(goals_clean$x.Start), sd = sd(goals_clean$x.Start)), color='dark blue', fill='blue', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(goals_clean_x$x.Start), sd = sd(goals_clean_x$x.Start)), color='dark blue', fill='blue', size=1)+
   
   labs(title="X-coordinates of Shots & Goals with Normal Distribution Fits", x="x-coordinate", y="Normalized Count")+
   
@@ -290,20 +329,16 @@ ggplot()+
 
 ggsave("shots_goals_x.jpeg")
 
-```
-
-```{r}
-
 #Histograms of shots and goals y coordinates
 
 ggplot()+
-  geom_histogram(data=shots_clean, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=shots_clean_y, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
   
-  geom_histogram(data=goals_clean, aes(x=y.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  geom_histogram(data=goals_clean_y, aes(x=y.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(shots_clean$y.Start), sd = sd(shots_clean$y.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(shots_clean_y$y.Start), sd = sd(shots_clean_y$y.Start)), color='dark red', fill='red', size=1)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(goals_clean$y.Start), sd = sd(goals_clean$y.Start)), color='dark blue', fill='blue', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(goals_clean_y$y.Start), sd = sd(goals_clean_y$y.Start)), color='dark blue', fill='blue', size=1)+
   
   labs(title="Y-coordinates of Shots & Goals with Normal Distribution Fits", x="y-coordinate", y="Normalized Count")+
   
@@ -315,9 +350,16 @@ ggplot()+
 
 ggsave("shots_goals_y.jpeg")
 ```
+**Figure 3.** Histograms and normal distribution fits of goals (in blue) and shots (in red) (Left) pass distance, (Middle) x-coordinate, (Right) y-coordinate.
 
-Upon reviewing the plots, it appears that there are some differences between some variables. We will continue by performing some hypothesis tests.
+## T-tests
 
+Based on the t-tests, the following variables have significantly different means at the 95% level.
+
+1. Assist v. Key Pass Distance (higher mean for key pass)
+2. Goal v. Shot Distance (higher mean for goals)
+3. Goal v. Shot x.Start (higher mean for goals)
+4. Goal v. Shot y.Start (higher mean for goals)
 ```{r hypothesis testing}
 
 #Distance
@@ -336,7 +378,7 @@ ttest_assist_v_keypass_x <- t.test(assists_clean_x$x.Start, key_passes_clean_x$x
 
 capture.output(ttest_assist_v_keypass_x, file = "ttests.txt", append = T)
 
-ttest_goals_v_shots_x <- t.test(goals_clean$x.Start, shots_clean$x.Start)
+ttest_goals_v_shots_x <- t.test(goals_clean_x$x.Start, shots_clean$x.Start)
 
 capture.output(ttest_goals_v_shots_x, file = "ttests.txt", append = T)
 
@@ -346,18 +388,122 @@ ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, key_passes_clean_y$y
 
 capture.output(ttest_assist_v_keypass_y, file = "ttests.txt", append = T)
 
-ttest_goals_v_shots_y <- t.test(goals_clean$y.Start, shots_clean$y.Start)
+ttest_goals_v_shots_y <- t.test(goals_clean_y$y.Start, shots_clean$y.Start)
 
 capture.output(ttest_goals_v_shots_y, file = "ttests.txt", append = T)
 
 ```
 
-Based on the t-tests, the following variables have significantly different means at the 95% level.
+## Success Probabilities vs Pitch Position:
 
-1. Assist v. Key Pass Distance (higher mean for key pass)
-2. Goal v. Shot Distance (higher mean for goals)
-3. Goal v. Shot x.Start (higher mean for goals)
-4. Goal v. Shot y.Start (higher mean for goals)
+Success probabilities of shots and assists/key passes are calculated as functions of event distance, and x & y-coordinates. These plots show that all these variables play a role in determining the probability of success of a shot resulting in a goal.
+```{r Success Probabilites, fig.show='hold', out.width='33%'}
+#Assist:Key pass ratio
+assist_density_length<-density(assists_clean$dist,
+                               n=100, from = 0, to = 100)
+key_pass_density_length<-density(key_passes_clean$dist,
+                                 n=100, from = 0, to = 100)
+
+assist_density_length$y=assist_density_length$n/sum(assist_density_length$y)*assist_density_length$y
+key_pass_density_length$y=key_pass_density_length$n/sum(key_pass_density_length$y)*key_pass_density_length$y
+total_keyassists=assist_density_length$y+key_pass_density_length$y
+assist_prob_length=assist_density_length$y/total_keyassists
+
+plot(assist_prob_length, ylim=c(0,1),
+     xlab='Pass Distance',
+     ylab='Goal Probability',
+     main = 'Probability of pass resulting in a goal vs distance of pass')
+
+#Assist:key pass ratio x-coordinate
+assist_density_x<-density(assists_clean_x$x.Start,
+                          n=100, from = 0, to = 100)
+key_pass_density_x<-density(key_passes_clean_x$x.Start,
+                            n=100, from = 0, to = 100)
+
+assist_density_x$y=assist_density_x$n/sum(assist_density_x$y)*assist_density_x$y
+key_pass_density_x$y=key_pass_density_x$n/sum(key_pass_density_x$y)*key_pass_density_x$y
+total_keyassists_x=assist_density_x$y+key_pass_density_x$y
+assist_prob_x=assist_density_x$y/total_keyassists_x
+
+plot(assist_prob_x, 
+     xlim=c(50, 100), ylim=c(0,1),
+     xlab='Field Length Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of pass resulting in a goal vs x-coordinate of pass')
+
+#Assist:key pass ratio y-coordinate
+assist_density_y<-density(assists_clean_y$y.Start,
+                          n=100, from = 0, to = 100)
+key_pass_density_y<-density(key_passes_clean_y$y.Start,
+                            n=100, from = 0, to = 100)
+
+assist_density_y$y=assist_density_y$n/sum(assist_density_y$y)*assist_density_y$y
+key_pass_density_y$y=key_pass_density_y$n/sum(key_pass_density_y$y)*key_pass_density_y$y
+total_keyassists_y=assist_density_y$y+key_pass_density_y$y
+assist_prob_y=assist_density_y$y/total_keyassists_y
+
+plot(assist_prob_y, ylim=c(0,1),
+     xlab='Field Width Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of pass resulting in a goal vs y-coordinate of pass')
+
+#Goal percentage shot distance
+goal_density_dist<-density(goals_clean$dist,
+                        n=100, from=0, to=100)
+
+shots_density_dist<-density(shots_clean$dist,
+                         n=100, from=0, to=100)
+
+goal_density_dist$y=goal_density_dist$n/sum(goal_density_dist$y)*goal_density_dist$y
+shots_density_dist$y<-shots_density_dist$n/sum(shots_density_dist$y)*shots_density_dist$y
+total_shots_dist<-goal_density_dist$y+shots_density_dist$y
+goal_shot_prob_dist<-(goal_density_dist$y/total_shots_dist)
+
+plot(goal_shot_prob_dist, 
+     xlim=c(0, 100), ylim=c(0,1),
+     xlab='Shot Distance',
+     ylab='Goal Probability',
+     main = 'Probability of Shot resulting in a goal vs distance of shot')
+
+#Goal percentage x-coordinate
+goal_density_x<-density(goals_clean_x$x.Start,
+                        n=100, from=0, to=100)
+
+shots_density_x<-density(shots_clean_x$x.Start,
+                         n=100, from=0, to=100)
+
+goal_density_x$y=goal_density_x$n/sum(goal_density_x$y)*goal_density_x$y
+shots_density_x$y<-shots_density_x$n/sum(shots_density_x$y)*shots_density_x$y
+total_shots_x<-goal_density_x$y+shots_density_x$y
+goal_shot_prob_x<-(goal_density_x$y/total_shots_x)
+
+plot(goal_shot_prob_x, 
+     xlim=c(60, 100), ylim=c(0,1),
+     xlab='Field Length Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of Shot resulting in a goal vs x-coordinate of shot')
+
+#Goal percentage y-coordinate
+goal_density_y<-density(goals_clean$y.Start,
+                        n=100, from=5, to=95)
+shots_density_y<-density(shots_clean_y$y.Start,
+                         n=100, from=5, to=95)
+
+goal_density_y$y=goal_density_y$n/sum(goal_density_y$y)*goal_density_y$y
+shots_density_y$y=shots_density_y$n/sum(shots_density_y$y)*shots_density_y$y
+total_shots_y<-goal_density_y$y+shots_density_y$y
+goal_shot_prob_y<-(goal_density_y$y/total_shots_y)
+
+
+plot(goal_shot_prob_y, 
+     xlim=c(0, 100), ylim=c(0,1),
+     xlab='Field Width Percentage',
+     ylab='Goal Probability',
+     main = 'Probability of Shot resulting in a goal vs y-coordinate of shot')
+```
+**Figure 4.** Success Probabilities of (Top) Assists and (Bottom) Shots as functions of (Left)  distance, (Middle) x-coordinate, and (Right) y-coordinate, and (Bottom) Shots.
+
+## Adding Color: Looking at Differences Between Competitions and Teams
 
 Based on this finding, it must be the case that teams consider strategies such as planning their starting points or practicing the accuracy of their shots in order to cover a desirable distance.
 
@@ -442,10 +588,21 @@ Based on the anova tests, the top 5 teams (defined by event frequencies) have so
 1. Shots + Goals Distance
 2. Shots + Goals Y.Start
 
-Concluding Statement: Based on t-tests done between Shots vs Goals, and Assists vs Key Passes, there is evidence of distance and start coordinate differences between successful and unsuccessful plays. Applying this finding to the top 5 teams in the World Cup, we see further that there are teams that are significantly different in their tendencies for distance and Y.Start when it comes to attempting a goal.
+## Conlcuding Statement:
+Based on t-tests done between Shots vs Goals, and Assists vs Key Passes, there is evidence of distance and start coordinate differences between successful and unsuccessful plays. Applying this finding to the top 5 teams in the World Cup, we see further that there are teams that are significantly different in their tendencies for distance and Y.Start when it comes to attempting a goal.
 
+## Further Work:
+Further work to be included in final report:
 
-jpeg files
+1. Improve how we deal with bimodal distributions  
+2. Improve vizualizations:  
+   a. Correlate x,y-coordinate histograms with soccer pitch  
+   b. 3-D success probability plots  
+3. Further exploration of data by groups:  
+   a. Competition  
+   b. Team  
+
+## Figure jpeg file codes:
 ```{r quick visuals}
 
 #Shots

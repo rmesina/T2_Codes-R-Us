@@ -71,18 +71,25 @@ key_passes<-key_passes %>% mutate(keypass_dist = sqrt((x.End-x.Start)^2+(y.End-y
 ```{r chekcing for outliers}
 assists_clean<-outlierKD2(assists, assist_dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean<-na.omit(assists_clean)
+
 assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean_x<-na.omit(assists_clean_x)
+
 assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 assists_clean_y<-na.omit(assists_clean_y)
+
 key_passes_clean<-outlierKD2(key_passes, keypass_dist, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 key_passes_clean<-na.omit(key_passes_clean)
+
 key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 key_passes_clean_x<-na.omit(key_passes_clean_x)
+
 key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 key_passes_clean_y<-na.omit(key_passes_clean_y)
+
 shot_attempts_clean<-outlierKD2(shot_attempts, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 shot_attempts_clean<-na.omit(shot_attempts_clean)
+
 goals_clean<-outlierKD2(goals, x.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 goals_clean<-na.omit(goals_clean)
 ```
@@ -205,9 +212,42 @@ ttest95_goals_y<-t.test(goals_clean$y.Start, mu=mean(shots_clean$y.Start), conf.
 ttest95_goals_y
 ```
 
+```{r # each event}
+event_data %>% 
+  group_by(Event.Name) %>%
+  summarise(no_rows = length(Event.Name))
+```
+
+```{r boxplots vs competition}
+ggplot(shots_clean_x, aes(x=competition, y=x.Start, fill=competition), xlab=FALSE) + 
+  geom_boxplot(notch=TRUE) + 
+  labs(title="Boxplot of shot x-coordinate", x="",
+       y="x-coordinate") +
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title = element_text(size=14))
+```
+
+```{r boxplots vs teams}
+ggplot(shots_clean_x, aes(x=Team.Name, y=x.Start, fill=Team.Name), xlab=FALSE) + 
+  geom_boxplot(notch=TRUE) + 
+  labs(title="Boxplot of shot x-coordinate", x="",
+       y="x-coordinate") +
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text = element_text(size=14),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title = element_text(size=14))
+```
+
+
 ```{r density plots}
 #Goal percentage x-coordinate
-goal_density_x<-density(goals_clean$x.Start,
+goal_density_x<-density(goals_clean_x$x.Start,
                         n=100, from=0, to=100)
 
 shot_attempt_density_x<-density(shot_attempts_clean$x.Start,
