@@ -601,6 +601,7 @@ Further work to be included in final report:
 3. Further exploration of data by groups:  
    a. Competition  
    b. Team  
+4. Linear model for goal success rate
 
 ## Figure jpeg file codes:
 ```{r quick visuals}
