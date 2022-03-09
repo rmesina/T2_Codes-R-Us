@@ -31,7 +31,7 @@ options(scientific=T, digits = 3)
 
 # R Markdown - Exploratory Data Analysis of Soccer Event Data Codes
 
-**SMART Question:** Based on the matches played during the 2017/2018 season for Europe’s top five leagues, the 2016 European Championship, and the 2018 World Cup, which match variables (ex: shot location, assist location, assist duration, etc…) result in the highest probability of a shot on goal being successful, result in a goal?
+**SMART Question:** Based on the matches played during the 2017/2018 season for Europe’s top five leagues, the 2016 European Championship, and the 2018 World Cup, which match variables (ex: shot location, assist location, assist distance, etc…) result in the highest probability of a shot on goal being successful, result in a goal?
 
 ## Importing Data:
 
