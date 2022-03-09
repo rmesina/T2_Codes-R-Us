@@ -406,3 +406,19 @@ ANOVA Table (type II tests)
 
      Effect DFn DFd    F     p p<.05  ges
 1 Team.Name   4 456 2.31 0.057       0.02
+ANOVA Table (type II tests)
+
+     Effect DFn DFd    F    p p<.05   ges
+1 Team.Name   4 185 2.21 0.07       0.046
+ANOVA Table (type II tests)
+
+     Effect DFn DFd    F     p p<.05   ges
+1 Team.Name   4 456 26.6 8e-20     * 0.189
+ANOVA Table (type II tests)
+
+     Effect DFn DFd    F     p p<.05  ges
+1 Team.Name   4 456 3.57 0.007     * 0.03
+ANOVA Table (type II tests)
+
+     Effect DFn DFd    F     p p<.05  ges
+1 Team.Name   4 456 2.31 0.057       0.02
