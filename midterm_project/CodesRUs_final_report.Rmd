@@ -1,15 +1,13 @@
 ---
-title: "CodesRUs_final_report"
+title: "CodesRUs Final Report"
 authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
 date: "March 9, 2022"
 output:
-  html_document:
-    prettydoc: html_pretty:
+  html_document: 
+    prettydoc::html_pretty:
       theme: cayman
     code_folding: hide
-    number_sections: false
     toc: yes
-    toc_depth: 3
     toc_float: yes
   pdf_document:
     toc: yes

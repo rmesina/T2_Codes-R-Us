@@ -1,0 +1,72 @@
+
+	Welch Two Sample t-test
+
+data:  assists_clean$dist and key_passes_clean$dist
+t = -13, df = 4855, p-value <2e-16
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -4.55 -3.37
+sample estimates:
+mean of x mean of y 
+     29.2      33.2 
+
+
+	Welch Two Sample t-test
+
+data:  goals_clean$dist and shots_clean$dist
+t = -7, df = 5989, p-value = 2e-13
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -4.28 -2.48
+sample estimates:
+mean of x mean of y 
+     75.2      78.6 
+
+
+	Welch Two Sample t-test
+
+data:  assists_clean_x$x.Start and key_passes_clean_x$x.Start
+t = -0.09, df = 4702, p-value = 0.9
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -0.489  0.446
+sample estimates:
+mean of x mean of y 
+     84.7      84.7 
+
+
+	Welch Two Sample t-test
+
+data:  goals_clean_x$x.Start and shots_clean$x.Start
+t = 91, df = 9913, p-value <2e-16
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 6.54 6.82
+sample estimates:
+mean of x mean of y 
+     90.8      84.1 
+
+
+	Welch Two Sample t-test
+
+data:  assists_clean_y$y.Start and key_passes_clean_y$y.Start
+t = -0.6, df = 5381, p-value = 0.6
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -1.521  0.823
+sample estimates:
+mean of x mean of y 
+     51.7      52.1 
+
+
+	Welch Two Sample t-test
+
+data:  goals_clean_y$y.Start and shots_clean$y.Start
+t = 2, df = 8689, p-value = 0.01
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.0706 0.6368
+sample estimates:
+mean of x mean of y 
+     49.5      49.2 
+
