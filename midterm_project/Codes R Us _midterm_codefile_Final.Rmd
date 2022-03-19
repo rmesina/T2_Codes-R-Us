@@ -130,7 +130,6 @@ head(shots)
 head(goals)
 head(assists)
 head(key_passes)
-
 ```
 
 ## Checking Each Variable for Outliers:
