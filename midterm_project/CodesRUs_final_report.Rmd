@@ -646,8 +646,8 @@ sg_box_x_wc<-boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name
 sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal Y.Start by Team", ylab = "y-coordinate", xlab = "Team", col=c("red","orange","yellow","green","blue"))  
 ```
 ```{r anova test}
-assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
-assist_key_pass_dist
+#assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
+#assist_key_pass_dist
 ```
   
 ## Chapter 5: Modelling Shot Success
