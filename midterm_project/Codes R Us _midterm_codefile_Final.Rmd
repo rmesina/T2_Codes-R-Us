@@ -510,7 +510,6 @@ Regardless of the result (goal v shot, assist v key pass), how do each team's di
 
 ```{r}
 # Stack assist and key pass dataset
-
 assist_key_pass <-rbind(assists_clean, key_passes_clean)
 assist_key_pass_wc <- subset(assist_key_pass, competition=="World Cup")
 
