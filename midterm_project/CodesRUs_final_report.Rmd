@@ -32,7 +32,7 @@ options(scientific=T, digits = 3)
 # use scipen=999 to prevent scientific notation at all times
 ```
 
-# Determining Which Variables Contribute to Shot Success
+# Determining Which Variables Contribute to Shot Success in Soccer
 ![Source: https://www.thepfa.com/news/2019/3/5/goal-celebrations](./JPEGS/goal-celebrations.jpg)
 ```{r goal celebration image}
 
@@ -546,27 +546,33 @@ ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, mu=mean(key_passes_c
 ttest_goals_v_shots_y <- t.test(goals_clean_y$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
 ```
 ##### Assists vs Key Passes:
-T-tests with a 95% confidence level were run on the assist and key pass variables, x-coordinate, y-coordinate, and distance. For each of these variables the null hypothesis was set as no difference between the variable means for assists and key passes.  
+T-tests with a 95% confidence level were run on the assist and key pass variables, x-coordinate, y-coordinate, and distance. For each of these variables the null hypothesis was set as no difference between the variable means for assists and key passes.
+
 Below is the result for the x-coordinate. The resulting p-value is on the order of 1e-07 signifying a statistically significant difference in the x-coordinate between assists and key passes. This result shows that, on average, final passes made further up the field are more likely to result in an assist than a key pass.
 ```{r ttest results assists vs key passes x}
 ttest_assist_v_keypass_x
 ```
-
+When looking at the y-coordinate a p-value of 0.5 is obtained which would indicate no difference between assists and key pass. Since these distributions are not actually normal and symmetric around the y=50 line, when we assume a normal distribution we get an inaccurate result.
 ```{r ttest results assists vs key passes y}
 ttest_assist_v_keypass_y
 ```
-
+The last variable to be looked at was the distance variable. The t-test here resulted in a p-value < 2e-16. So there is a significant difference between the distance covered by an assist vs a key pass, with assists having an average distance of 29.2 with a confidence interval from 28.7 - 29.8, and key passes having a mean distance of 33.2. This shows that final passes that have to cover a shorter distance are more likely to result in an assist.
 ```{r ttest results assists vs key passes dist}
 ttest_assist_v_keypass_dist
 ```
 ##### Goals vs Shots:
+Next, t-tests with a 95% confidence level were run on the goals and shots variables, x & y-coordinates. For these variables the null hypothesis was again set as no difference between the variable means for assists and key passes.
 
-```{r shots vs goals}
+Below is the result for the x-coordinate. The resulting p-value is < 2e-16, meaning there is a statistically significant difference between goals and shots. With the shot x-coordinate mean equal to 84.1 and lying outside the confidence interval for goals, 90.7 - 90.9, we can conclude that attempts on goal take further up the field are more likely to result in a goal.
+```{r shots vs goals x}
 ttest_goals_v_shots_x
+```
+Looking now at the results for the y-coordinate, a p-value of 0.005 is obtained, still indicating a statistically significant difference of this variable between goals and shots. The shot mean y-coordinate is 49.2 and sits just outside the confidence interval of 49.3 - 49.8 for the goals y-coordinate. This is an interesting result as we expected for there not to be a difference in the y-coordinate. This is because shots are taken from both sides of the field in about equal measure, yet it seems that perhaps the shot distribution favors the right side more than the left, but more goals are scored from a more central location. It could be that while this result is statistically significant, in reality though it probably isn't. For example, an average professional soccer pitch is about 70 meters wide. So, a difference of 0.1% in the y-coordinate is a difference of 0.07 meters, which is not really a significant difference.
+```{r shots vs goals y}
 ttest_goals_v_shots_y
 ```
 
-## Chapter 4: 
+## Chapter 4: SMART Questions
 
 ### SMART Question 1: Which match variables result in the highest probability of a successful shot on goal?
 ```{r Success probability plots, fig.show='hold', out.width='33%'}
