@@ -33,6 +33,10 @@ options(scientific=T, digits = 3)
 ```
 
 # Determining Which Variables Contribute to Shot Success
+![Source: https://www.thepfa.com/news/2019/3/5/goal-celebrations](./JPEGS/goal-celebrations.jpg)
+```{r goal celebration image}
+
+```
 ```{r loading data}
 #Load Event data from each competition as a dataframe
 england<-data.frame(read.csv('./datasets/events_England_new.csv'))
@@ -119,90 +123,21 @@ key_passes<-subset(event_data, Tag.1=='Key pass')
 
 ## Chapter 3: Exploratory Data Analysis
 ### 3.1 At a Glance
-```{r checking for outliers, include=FALSE}
-#Set to TRUE of all plots for each varialbe want to be seen.
-show_all_plots=FALSE
 
-assists_clean<-outlierKD2(assists, dist, rm=TRUE, boxplt = FALSE, histogram = FALSE, qqplt = FALSE)
-assists_clean<-na.omit(assists_clean)
-
-assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, 
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-assists_clean_x<-na.omit(assists_clean_x)
-
-assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, 
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-assists_clean_y<-na.omit(assists_clean_y)
-
-key_passes_clean<-outlierKD2(key_passes, dist, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-key_passes_clean<-na.omit(key_passes_clean)
-
-key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-key_passes_clean_x<-na.omit(key_passes_clean_x)
-
-key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-key_passes_clean_y<-na.omit(key_passes_clean_y)
-
-shots_clean<-outlierKD2(shots, dist, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-shots_clean<-na.omit(shots_clean)
-
-shots_clean_x<-outlierKD2(shots, x.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-shots_clean_x<-na.omit(shots_clean_x)
-
-shots_clean_y<-outlierKD2(shots, y.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-shots_clean_y<-na.omit(shots_clean_y)
-
-goals_clean<-outlierKD2(goals, dist, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-goals_clean<-na.omit(goals_clean)
-
-goals_clean_x<-outlierKD2(goals, x.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-goals_clean_x<-na.omit(goals_clean_x)
-
-goals_clean_y<-outlierKD2(goals, y.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-goals_clean_y<-na.omit(goals_clean_y)
-
-```
 ```{r Event summaries}
-key_pass_sum<-st(key_passes[c('x.Start', 'y.Start', 'dist')])
-assist_sum<-summary(assists[c('x.Start', 'y.Start', 'dist')])
-shots_sum<-summary(shots[c('x.Start', 'y.Start', 'dist')])
-goals_sum<-summary(goals[c('x.Start', 'y.Start', 'dist')])
+ls<-c('Min', '1st Quant', 'Median', '3rd Quant', 'Max')
+key_pass_sum_x<-summary(key_passes$x.Start)
+key_pass_sum_y<-summary(key_passes$y.Start)
+key_pass_sum_d<-summary(key_passes$dist)
+#assist_sum<-summary(assists[c('x.Start', 'y.Start', 'dist')])
+#shots_sum<-summary(shots[c('x.Start', 'y.Start', 'dist')])
+#goals_sum<-summary(goals[c('x.Start', 'y.Start', 'dist')])
+#st(key_passes)
+#xkabledply(key_pass_sum, title = 'Key Passes Summary', wide = TRUE)
+#xkabledply(assist_sum, title = 'Assists Summary')
+#xkabledply(shots_sum, title = 'Shots Summary')
+#xkabledply(goals_sum, title = 'Goals Summary')
 
-xkabledply(key_pass_sum, title = 'Key Passes Summary', wide = TRUE)
-xkabledply(assist_sum, title = 'Assists Summary')
-xkabledply(shots_sum, title = 'Shots Summary')
-xkabledply(goals_sum, title = 'Goals Summary')
 ```
 
 ### 3.2 Event Visualization
@@ -419,6 +354,81 @@ assist_dist
 **Figure 2.** Event distance for (Left)  Key Passes and (Right) Assists.
 
 ### 3.3 Differences in Event Distributions
+From looking at Figures 1 and 2, we already see several points that are outliers. For example, when looking at the figure showing shot events several shots can be seen to occur in the defensive half of the field. When looking at the bordering density plot, we see that these events, while they do occur, are rare compared with the majority of shots taken. From this we felt safe cleaning our events to remove these sorts of outliers before taking a deep dive into the distributions.
+```{r checking for outliers, include=FALSE}
+#Set to TRUE of all plots for each varialbe want to be seen.
+show_all_plots=FALSE
+
+assists_clean<-outlierKD2(assists, dist, rm=TRUE, boxplt = FALSE, histogram = FALSE, qqplt = FALSE)
+assists_clean<-na.omit(assists_clean)
+
+assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, 
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+assists_clean_x<-na.omit(assists_clean_x)
+
+assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, 
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+assists_clean_y<-na.omit(assists_clean_y)
+
+key_passes_clean<-outlierKD2(key_passes, dist, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+key_passes_clean<-na.omit(key_passes_clean)
+
+key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+key_passes_clean_x<-na.omit(key_passes_clean_x)
+
+key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+key_passes_clean_y<-na.omit(key_passes_clean_y)
+
+shots_clean<-outlierKD2(shots, dist, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean<-na.omit(shots_clean)
+
+shots_clean_x<-outlierKD2(shots, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean_x<-na.omit(shots_clean_x)
+
+shots_clean_y<-outlierKD2(shots, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean_y<-na.omit(shots_clean_y)
+
+goals_clean<-outlierKD2(goals, dist, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean<-na.omit(goals_clean)
+
+goals_clean_x<-outlierKD2(goals, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean_x<-na.omit(goals_clean_x)
+
+goals_clean_y<-outlierKD2(goals, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean_y<-na.omit(goals_clean_y)
+
+```
 #### 3.3.1 Fitting Event Distributions
 ```{r Comparing variable distributions, fig.show='hold', out.width='33%'}
 
@@ -521,6 +531,7 @@ sg_hist_y
 ```
 
 #### 3.3.2 T-tests: Comparing Assists vs Key Passes and Shots vs Goals
+The t-tests were done assuming a normal distribution of the event variables despite most of the distributions not being normal. This was quick and easy, even though there's room for error it still allows us to get a sense of the differences in variables the determine success or failure.
 ```{r hypothesis testing}
 
 #Distance
@@ -533,10 +544,26 @@ ttest_goals_v_shots_x <- t.test(goals_clean_x$x.Start, mu=mean(shots_clean$x.Sta
 #Starting Y-coordinate
 ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, mu=mean(key_passes_clean$y.Start), conf.level=0.95)
 ttest_goals_v_shots_y <- t.test(goals_clean_y$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
-
-ttest_assist_v_keypass_dist
+```
+##### Assists vs Key Passes:
+T-tests with a 95% confidence level were run on the assist and key pass variables, x-coordinate, y-coordinate, and distance. For each of these variables the null hypothesis was set as no difference between the variable means for assists and key passes.  
+Below is the result for the x-coordinate. The resulting p-value is on the order of 1e-07 signifying a statistically significant difference in the x-coordinate between assists and key passes. This result shows that, on average, final passes made further up the field are more likely to result in an assist than a key pass.
+```{r ttest results assists vs key passes x}
 ttest_assist_v_keypass_x
+```
 
+```{r ttest results assists vs key passes y}
+ttest_assist_v_keypass_y
+```
+
+```{r ttest results assists vs key passes dist}
+ttest_assist_v_keypass_dist
+```
+##### Goals vs Shots:
+
+```{r shots vs goals}
+ttest_goals_v_shots_x
+ttest_goals_v_shots_y
 ```
 
 ## Chapter 4: 
