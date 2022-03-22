@@ -677,7 +677,7 @@ plot(goal_shot_prob_y,
   
 **Figure 6.** Goal probability plots for (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate.
   
-From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, 
+From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, goal probability varies with respect to all selected variables. The one exception to this is the final pass x-coordinate which remains relatively constant. Second, goal probability shows the greatest change as functions of final pass distance and shot x-coordinate. In the case of final pass distance, the probability of a goal approaches 0.4 as the length of the pass decreases. In the case of shot x-coordinate, the goal probability also approaches 0.4 as the x-coordinate approaches 100, gets closer to the goal. The goal probability of the final pass and shot y-coordinates also shows peaks, in these two cases the peak is symmetric around the y=50 line. However, the difference between goal probability at the peak and at the baseline is slightly lower, about 0.25, compared with the final pass distance and shot x-coordinate variables.
 
 ### SMART Question 2: How do these variables vary with different teams?
 ```{r worldcup teams, fig.show='hold', out.width='33%'}
