@@ -685,6 +685,10 @@ plot(goal_shot_prob_y,
 From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, 
 
 ### SMART Question 2: How do these variables vary with different teams?
+Based on the t-test results, we now know that there is some evidence that there are differences between means of x & y coordinates and distance of key passes vs assists, and separately, x & y coordinates of shots and goals. An interesting follow-up question is whether or not teams build strategies around these variables and if so, do these strategies differ across teams? We can use boxplots to visualize and ANOVA to test for any differences.
+
+For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots and passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. For each of these teams, we plot the x and y coordinates and distance of their final passes (not distinguishing between assists and key passes because strategy is made prior to the end result of a goal or non-goal). We also plot the x and y coordinates of their shots (once again, not distinguising between goals and non-goals). See figure 7 below.
+
 ```{r worldcup teams, fig.show='hold', out.width='33%'}
 # Stack assist and key pass dataset
 assist_key_pass <-rbind(assists_clean, key_passes_clean)
@@ -758,11 +762,10 @@ sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name
                      cex.main=1.75,
                      ylim=c(0,100))  
 ```
-Based on the t-test results, we now know that there is some evidence that means between key passes and assist, and separately, shots and goals. An interesting follow-up question is whether or not teams build strategies around these variables and if so, do these strategies differ across teams? We can use boxplots to visualize and ANOVA to test for any differences.
-
-For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots and passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. For each of these teams, we plot the x and y coordinates and distance of their final passes (not distinguishing between assists and key passes because strategy is made prior to the end result of a goal or non-goal). We also plot the x and y coordinates of their shots. See below.
 
 **Figure 7.** Boxplots of (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate of the five teams from the 2018 world cup with the highest tallies of assists + key passes and shots + goals.  
+
+
 ```{r anova test}
 #assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
 #assist_key_pass_dist
