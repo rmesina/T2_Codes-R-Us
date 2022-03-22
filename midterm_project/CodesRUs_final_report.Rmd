@@ -436,60 +436,64 @@ goals_clean_y<-na.omit(goals_clean_y)
 ak_hist_x<-ggplot()+
   geom_histogram(data=(assists_clean_x), aes(x=x.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
   
-  geom_histogram(data=(key_passes_clean_x), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=(key_passes_clean_x), aes(x=x.Start, y=..density..), color='Black', fill='Gold', alpha=0.3)+
   
   stat_function(fun = dnorm, args = list(mean = mean(assists_clean_x$x.Start), sd = sd(assists_clean_x$x.Start)), color='dark green', fill='green', size=1)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean_x$x.Start), sd = sd(key_passes_clean_x$x.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean_x$x.Start), sd = sd(key_passes_clean_x$x.Start)), color='Gold', fill='Gold', size=1)+
   
-  labs(title="X-coordinates of Key Passes & Assists with Normal Distribution Fits", x="x-coordinate", y="Normalized Count")+
+  labs(title="x-coordinates of Key Passes & Assists", x="x-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
-        axis.text = element_text(size=14),
-        axis.title = element_text(size=14))
+        axis.text = element_text(size=20),
+        axis.title = element_text(size=20),
+        plot.title = element_text(size=24, hjust=0.5))
 
 #Histograms of Assist and Key Pass y Coordinates
 ak_hist_y<-ggplot()+
   geom_histogram(data=(assists_clean_y), aes(x=y.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
   
-  geom_histogram(data=(key_passes_clean_y), aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=(key_passes_clean_y), aes(x=y.Start, y=..density..), color='Black', fill='Gold', alpha=0.3)+
   
   stat_function(fun = dnorm, args = list(mean = mean(assists_clean_y$y.Start), sd = sd(assists_clean_y$y.Start)), color='dark green', fill='green', size=1)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean_y$y.Start), sd = sd(key_passes_clean_y$y.Start)), color='dark red', fill='red', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean_y$y.Start), sd = sd(key_passes_clean_y$y.Start)), color='gold', fill='gold', size=1)+
   
-  labs(title="Y-coordinates of Key Passes & Assists with Normal Distribution Fits", x="y-coordinate", y="Normalized Count")+
+  labs(title="y-coordinates of Key Passes & Assists", x="y-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
-        axis.text = element_text(size=14),
-        axis.title = element_text(size=14))
+        axis.text = element_text(size=20),
+        axis.title = element_text(size=20),
+        plot.title = element_text(size=24, hjust=0.5))
 
 #Histograms of Assist and Key Pass Distance
 ak_hist_d<-ggplot()+
   geom_histogram(data=assists_clean, aes(x=dist, y=..density..), color='Black', fill='Green', alpha=0.3)+
   
-  geom_histogram(data=key_passes_clean, aes(x=dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  geom_histogram(data=key_passes_clean, aes(x=dist, y=..density..), color='Black', fill='Gold', alpha=0.3)+
   
   stat_function(fun = dnorm, args = list(mean = mean(assists_clean$dist), sd = sd(assists_clean$dist)), color='dark green', fill='green', size=1)+
   
-  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$dist), sd = sd(key_passes_clean$dist)), color='dark red', fill='green', size=1)+
+  stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$dist), sd = sd(key_passes_clean$dist)), color='Gold', fill='gold', size=1)+
   
-  labs(title="Distance of Assists and Key Passes with Normal Distribution Fit", x="Distance", y="Normalized Count")+
+  labs(title="Distance of Assists and Key Passes", x="Distance", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
-        axis.text = element_text(size=14),
-        axis.title = element_text(size=14))
+        axis.text = element_text(size=20),
+        axis.title = element_text(size=20),
+        plot.title = element_text(size=24, hjust=0.5))
 
 ak_hist_x
 ak_hist_y
 ak_hist_d
 ```
+**Figure 3.** Key pass (yellow) and assist (green) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.  
 
 ```{r comparing shots and goals distributions, fig.show='hold', out.width='50%'}
 sg_hist_x<-ggplot()+
@@ -501,13 +505,14 @@ sg_hist_x<-ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean_x$x.Start), sd = sd(goals_clean_x$x.Start)), color='dark blue', fill='blue', size=1)+
   
-  labs(title="X-coordinates of Shots & Goals with Normal Distribution Fits", x="x-coordinate", y="Normalized Count")+
+  labs(title="X-coordinates of Shots & Goals", x="x-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
-        axis.title = element_text(size=14))
+        axis.title = element_text(size=14),
+        plot.title = element_text(size=18, hjust=0.5))
 
 sg_hist_y<-ggplot()+
   geom_histogram(data=shots_clean_y, aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
@@ -518,17 +523,19 @@ sg_hist_y<-ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(goals_clean_y$y.Start), sd = sd(goals_clean_y$y.Start)), color='dark blue', fill='blue', size=1)+
   
-  labs(title="Y-coordinates of Shots & Goals with Normal Distribution Fits", x="y-coordinate", y="Normalized Count")+
+  labs(title="Y-coordinates of Shots & Goals", x="y-coordinate", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Blue', 'Red'), labels=c('Goals','Shots'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text = element_text(size=14),
-        axis.title = element_text(size=14))
+        axis.title = element_text(size=14),
+        plot.title = element_text(size=18, hjust=0.5))
 
 sg_hist_x
 sg_hist_y
 ```
+**Figure 4.** Shots (red) and Goals (blue) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.
 
 #### 3.3.2 T-tests: Comparing Assists vs Key Passes and Shots vs Goals
 The t-tests were done assuming a normal distribution of the event variables despite most of the distributions not being normal. This was quick and easy, even though there's room for error it still allows us to get a sense of the differences in variables the determine success or failure.
