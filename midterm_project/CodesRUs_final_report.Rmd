@@ -9,6 +9,7 @@ output:
     code_folding: hide
     toc: yes
     toc_float: yes
+    theme: cerulean
   pdf_document:
     toc: yes
     toc_depth: '3'
@@ -22,6 +23,7 @@ library(ggplot2)
 library(ggsoccer)
 library(ggpubr)
 library(dplyr)
+library(vtable)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
 options(scientific=T, digits = 3) 
@@ -192,14 +194,21 @@ goals_clean_y<-na.omit(goals_clean_y)
 
 ```
 ```{r Event summaries}
-key_pass_sum<-summary(key_passes[c('x.Start', 'y.Start','keypass_dist')])
-assist_sum<-summary(assists[c('x.Start', 'y.Start','assist_dist')])
-shots_sum<-summary(shots[c('x.Start', 'y.Start')])
-goals_sum<-summary(goals[c('x.Start', 'y.Start')])
-xkabledply(key_pass_sum)
+key_pass_sum<-st(key_passes[c('x.Start', 'y.Start', 'dist')])
+assist_sum<-summary(assists[c('x.Start', 'y.Start', 'dist')])
+shots_sum<-summary(shots[c('x.Start', 'y.Start', 'dist')])
+goals_sum<-summary(goals[c('x.Start', 'y.Start', 'dist')])
+
+xkabledply(key_pass_sum, title = 'Key Passes Summary', wide = TRUE)
+xkabledply(assist_sum, title = 'Assists Summary')
+xkabledply(shots_sum, title = 'Shots Summary')
+xkabledply(goals_sum, title = 'Goals Summary')
 ```
 
-### 3.1 Event Visualization
+### 3.2 Event Visualization
+#### 3.2.1 Visualizing Field Locations
+Using the ggsoccer library to plot event data on an image of a pitch and bordering the x and y axis with event density plots we were quickly able to understand how each event is distributed on the pitch, shown in Figure 1. Several observations can be made from this visualization. First, the x & y-coordinates for both key passes and assists are multimodal and appear to be symmetric across the y=50 line. This makes sense as teams try to attack down both sides of the field. With this data being an average over so many games getting a symmetric split between the two sides of the field is expected. This symmetry could be a factor that varies from team to team, however. Second, the x & y-coordinate distributions for shots and goals is much closer to normal. The exception being the x-coordinate for shots which is bimodal. This is interesting because it indicates that a significant portion of shots are take farther away from goal, however, very few goals are scored from these shots. Despite this, players still seem to take these shots. 
+  
 ```{r plot events on soccer pitch}
 shots_fig<-ggplot(shots, aes(x=x.Start, y=y.Start))+
   annotate_pitch()+
@@ -350,6 +359,9 @@ shot_dist_pitch
 goal_dist_pitch
 ```
 **Figure 1.** Event field locations and x & y-coordinate density plots for (Top Left) Key Passes, (Top Right) Assists, (Bottom Left) Shots, and (Bottom Right) Goals.
+
+#### 3.2.2 Event Distance Distributions
+The distance distributions for key passes and assists are displayed in Figure 2. Both show fairly normal distributions, despite the fact that neither the x,y-coordinates for these two events show normal distributions.
 
 ```{r event distance distribution, fig.show='hold', out.width='50%'}
 key_pass_dist<-ggplot()+
@@ -512,18 +524,19 @@ sg_hist_y
 ```{r hypothesis testing}
 
 #Distance
-ttest_assist_v_keypass_dist <- t.test(assists_clean$dist, key_passes_clean$dist)
+ttest_assist_v_keypass_dist <- t.test(assists_clean$dist, mu=mean(key_passes_clean$dist), conf.level=0.95)
 
 #Starting X-coordinate
-ttest_assist_v_keypass_x <- t.test(assists_clean_x$x.Start, key_passes_clean_x$x.Start)
-ttest_goals_v_shots_x <- t.test(goals_clean_x$x.Start, shots_clean$x.Start)
+ttest_assist_v_keypass_x <- t.test(assists_clean_x$x.Start, mu=mean(key_passes_clean$x.Start), conf.level=0.95)
+ttest_goals_v_shots_x <- t.test(goals_clean_x$x.Start, mu=mean(shots_clean$x.Start), conf.level = 0.95)
 
 #Starting Y-coordinate
-ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, key_passes_clean_y$y.Start)
-ttest_goals_v_shots_y <- t.test(goals_clean_y$y.Start, shots_clean$y.Start)
+ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, mu=mean(key_passes_clean$y.Start), conf.level=0.95)
+ttest_goals_v_shots_y <- t.test(goals_clean_y$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
 
 ttest_assist_v_keypass_dist
 ttest_assist_v_keypass_x
+
 ```
 
 ## Chapter 4: 
