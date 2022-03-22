@@ -116,7 +116,90 @@ key_passes<-subset(event_data, Tag.1=='Key pass')
 ```
 
 ## Chapter 3: Exploratory Data Analysis
-### 3. Event Visualization
+### 3.1 At a Glance
+```{r checking for outliers, include=FALSE}
+#Set to TRUE of all plots for each varialbe want to be seen.
+show_all_plots=FALSE
+
+assists_clean<-outlierKD2(assists, dist, rm=TRUE, boxplt = FALSE, histogram = FALSE, qqplt = FALSE)
+assists_clean<-na.omit(assists_clean)
+
+assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, 
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+assists_clean_x<-na.omit(assists_clean_x)
+
+assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, 
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+assists_clean_y<-na.omit(assists_clean_y)
+
+key_passes_clean<-outlierKD2(key_passes, dist, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+key_passes_clean<-na.omit(key_passes_clean)
+
+key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+key_passes_clean_x<-na.omit(key_passes_clean_x)
+
+key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+key_passes_clean_y<-na.omit(key_passes_clean_y)
+
+shots_clean<-outlierKD2(shots, dist, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean<-na.omit(shots_clean)
+
+shots_clean_x<-outlierKD2(shots, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean_x<-na.omit(shots_clean_x)
+
+shots_clean_y<-outlierKD2(shots, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+shots_clean_y<-na.omit(shots_clean_y)
+
+goals_clean<-outlierKD2(goals, dist, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean<-na.omit(goals_clean)
+
+goals_clean_x<-outlierKD2(goals, x.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean_x<-na.omit(goals_clean_x)
+
+goals_clean_y<-outlierKD2(goals, y.Start, rm=TRUE,  
+                            boxplt = show_all_plots, 
+                            histogram = show_all_plots, 
+                            qqplt = show_all_plots)
+goals_clean_y<-na.omit(goals_clean_y)
+
+```
+```{r Event summaries}
+key_pass_sum<-summary(key_passes[c('x.Start', 'y.Start','keypass_dist')])
+assist_sum<-summary(assists[c('x.Start', 'y.Start','assist_dist')])
+shots_sum<-summary(shots[c('x.Start', 'y.Start')])
+goals_sum<-summary(goals[c('x.Start', 'y.Start')])
+xkabledply(key_pass_sum)
+```
+
+### 3.1 Event Visualization
 ```{r plot events on soccer pitch}
 shots_fig<-ggplot(shots, aes(x=x.Start, y=y.Start))+
   annotate_pitch()+
@@ -322,82 +405,6 @@ key_pass_dist
 assist_dist
 ```
 **Figure 2.** Event distance for (Left)  Key Passes and (Right) Assists.
-
-### 3.2 Event Distribution
-```{r checking for outliers, include=FALSE}
-#Set to TRUE of all plots for each varialbe want to be seen.
-show_all_plots=FALSE
-
-assists_clean<-outlierKD2(assists, dist, rm=TRUE, boxplt = FALSE, histogram = FALSE, qqplt = FALSE)
-assists_clean<-na.omit(assists_clean)
-
-assists_clean_x<-outlierKD2(assists, x.Start, rm=TRUE, 
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-assists_clean_x<-na.omit(assists_clean_x)
-
-assists_clean_y<-outlierKD2(assists, y.Start, rm=TRUE, 
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-assists_clean_y<-na.omit(assists_clean_y)
-
-key_passes_clean<-outlierKD2(key_passes, dist, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-key_passes_clean<-na.omit(key_passes_clean)
-
-key_passes_clean_x<-outlierKD2(key_passes, x.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-key_passes_clean_x<-na.omit(key_passes_clean_x)
-
-key_passes_clean_y<-outlierKD2(key_passes, y.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-key_passes_clean_y<-na.omit(key_passes_clean_y)
-
-shots_clean<-outlierKD2(shots, dist, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-shots_clean<-na.omit(shots_clean)
-
-shots_clean_x<-outlierKD2(shots, x.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-shots_clean_x<-na.omit(shots_clean_x)
-
-shots_clean_y<-outlierKD2(shots, y.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-shots_clean_y<-na.omit(shots_clean_y)
-
-goals_clean<-outlierKD2(goals, dist, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-goals_clean<-na.omit(goals_clean)
-
-goals_clean_x<-outlierKD2(goals, x.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-goals_clean_x<-na.omit(goals_clean_x)
-
-goals_clean_y<-outlierKD2(goals, y.Start, rm=TRUE,  
-                            boxplt = show_all_plots, 
-                            histogram = show_all_plots, 
-                            qqplt = show_all_plots)
-goals_clean_y<-na.omit(goals_clean_y)
-
-```
 
 ### 3.3 Differences in Event Distributions
 #### 3.3.1 Fitting Event Distributions
