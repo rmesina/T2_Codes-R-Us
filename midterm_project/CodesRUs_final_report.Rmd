@@ -572,7 +572,7 @@ ttest_goals_v_shots_y
 ## Chapter 4: SMART Questions
 
 ### SMART Question 1: Which match variables result in the highest probability of a successful shot on goal?  
-The t-tests done in the previous section demonstrate that there are differences in our selected variables between key passes and assists and between shots and goals. However, this only hints at does not answer the question: which variables result in the highest probability on goal? In other words, in a match, what field positions should teams target to improve the likelihood of scoring a goal? To answer this, we calculated and plotted the success probabilities of the final pass (successful = assist = goal) and shots (successful = goal) as a function of their starting x-coordinate, y-coordinate and in the case of the final pass, the pass distance. The results are shown below in Figure 6.
+The t-tests done in the previous section demonstrate that there are differences in our selected variables between key passes and assists and between shots and goals. However, this only points us to variables that matter (in that there is a difference in coordinates or distance between a successful and an unsuccessful event), and it does not fully answer the question: which variables result in the highest probability on goal? In other words, in a match, what field positions should teams target to improve the likelihood of scoring a goal? To answer this, we calculated and plotted the success probabilities of the final pass (successful = assist = goal) and shots (successful = goal) as a function of their starting x-coordinate, y-coordinate and in the case of the final pass, the pass distance. The results are shown below in Figure 6.
 ```{r Success probability plots, fig.show='hold', out.width='33%'}
 #Assist:key pass ratio x-coordinate
 assist_density_x<-density(assists_clean_x$x.Start,
@@ -758,7 +758,7 @@ sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name
                      cex.main=1.75,
                      ylim=c(0,100))  
 ```
-
+Based on the t-test results, we now know that there is some evidence that means between key passes and assist, and separately, shots and goals. An interesting follow-up question is whether or not teams build strategies around these variables and if so, do these strategies differ across teams? In order to answer this que interesting application of this finding 
 **Figure 7.** Boxplots of (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate of the five teams from the 2018 world cup with the highest tallies of assists + key passes and shots + goals.  
 ```{r anova test}
 #assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
