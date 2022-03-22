@@ -101,7 +101,7 @@ event_data$dist <- as.numeric(event_data$dist)
 ```
 
 ### 2.3 Subsetting Data
-With so many variables available we had to start by narrowing the number to look at. Since we’re interested in what variables effect the success rate of a shot on goal, we selected the variables immediately preceding a goal. These include shots, assists, and key passes, and the x,y-coordinates and event distance for each. Separate data frames were created for each of the following events of interest: 
+With so many variables available we had to start by narrowing the number to look at. Since we’re interested in what variables affect the success rate of a shot on goal, we wanted to look into the variables immediately preceding a goal. Upon consulting with a subject matter expert on our team, we've identified those variables to be shots, assists, and key passes, and the x,y-coordinates and event distance for each. Separate data frames were created for each of the following events of interest: 
 
 1.	Key passes: pass leading to unsuccessful scoring opportunity 
 2.	Assists: pass leading to a goal   
@@ -132,7 +132,7 @@ To understand our data, we needed to first understand how the field is set up. T
 
 ### 3.2 Event Visualization
 #### 3.2.1 Visualizing Field Locations
-Using the ggsoccer library to plot event data on an image of a pitch and bordering the x and y axis with event density plots we were quickly able to understand how each event is distributed on the pitch, shown in Figure 2. Several observations can be made from this visualization. First, the x & y-coordinates for both key passes and assists are multimodal and appear to be symmetric across the y=50 line. This makes sense as teams try to attack down both sides of the field. With this data being an average over so many games getting a symmetric split between the two sides of the field is expected. This symmetry could be a factor that varies from team to team, however. Second, the x & y-coordinate distributions for shots and goals is much closer to normal. The exception being the x-coordinate for shots which is bimodal. This is interesting because it indicates that a significant portion of shots are take farther away from goal, however, very few goals are scored from these shots. Despite this, players still seem to take these shots. 
+Using the ggsoccer library to plot event data on an image of a pitch and bordering the x and y axis with event density plots we were quickly able to understand how each event is distributed on the pitch, shown in Figure 2. Several observations can be made from this visualization. First, the x & y-coordinates for both key passes and assists are multimodal and appear to be symmetric across the y=50 line. This makes sense as teams try to attack down both sides of the field. With this data being an average over so many games getting a symmetric split between the two sides of the field is expected. This symmetry could be a factor that varies from team to team, however. Second, the x & y-coordinate distributions for shots and goals is much closer to normal. The exception being the x-coordinate for shots which is bimodal. This is interesting because it indicates that a significant portion of shots are taken farther away from goal, however, very few goals are scored from these shots. Despite this, players still seem to take these shots. 
   
 ```{r plot events on soccer pitch}
 shots_fig<-ggplot(shots, aes(x=x.Start, y=y.Start))+
@@ -528,7 +528,7 @@ sg_hist_y
 **Figure 5.** Shots (red) and Goals (blue) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.
 
 #### 3.3.2 T-tests: Comparing Assists vs Key Passes and Shots vs Goals
-The t-tests were done assuming a normal distribution of the event variables despite most of the distributions not being normal. This was quick and easy, even though there's room for error it still allows us to get a sense of the differences in variables the determine success or failure.
+The t-tests were done assuming a normal distribution of the event variables despite most of the distributions not being normal. This was quick and easy, even though there's room for error it still allows us to get a sense of the differences in variables that determine success or failure.
 ```{r hypothesis testing}
 
 #Distance
@@ -543,7 +543,7 @@ ttest_assist_v_keypass_y <- t.test(assists_clean_y$y.Start, mu=mean(key_passes_c
 ttest_goals_v_shots_y <- t.test(goals_clean_y$y.Start, mu=mean(shots_clean$y.Start), conf.level = 0.95)
 ```
 ##### Assists vs Key Passes:
-T-tests with a 95% confidence level were run on the assist and key pass variables, x-coordinate, y-coordinate, and distance. For each of these variables the null hypothesis was set as no difference between the variable means for assists and key passes.
+T-tests with a 95% confidence level were run on the assist and key pass variables: x-coordinate, y-coordinate, and distance. For each of these variables the null hypothesis was set as no difference between the variable means for assists and key passes.
 
 Below is the result for the x-coordinate. The resulting p-value is on the order of 1e-07 signifying a statistically significant difference in the x-coordinate between assists and key passes. This result shows that, on average, final passes made further up the field are more likely to result in an assist than a key pass.
 ```{r ttest results assists vs key passes x}
@@ -553,18 +553,18 @@ When looking at the y-coordinate a p-value of 0.5 is obtained which would indica
 ```{r ttest results assists vs key passes y}
 ttest_assist_v_keypass_y
 ```
-The last variable to be looked at was the distance variable. The t-test here resulted in a p-value < 2e-16. So there is a significant difference between the distance covered by an assist vs a key pass, with assists having an average distance of 29.2 with a confidence interval from 28.7 - 29.8, and key passes having a mean distance of 33.2. This shows that final passes that have to cover a shorter distance are more likely to result in an assist.
+The last variable to be looked at was the distance variable. The t-test here resulted in a p-value < 2e-16. This indicates that there is a significant difference between the distance covered by an assist vs a key pass, with assists having an average distance of 29.2 with a confidence interval from 28.7 - 29.8, and key passes having a mean distance of 33.2. This shows that final passes that have to cover a shorter distance are more likely to result in an assist.
 ```{r ttest results assists vs key passes dist}
 ttest_assist_v_keypass_dist
 ```
 ##### Goals vs Shots:
-Next, t-tests with a 95% confidence level were run on the goals and shots variables, x & y-coordinates. For these variables the null hypothesis was again set as no difference between the variable means for assists and key passes.
+Next, t-tests with a 95% confidence level were run on the goals and shots variables: x & y-coordinates. For these variables the null hypothesis was again set as no difference between the variable means for assists and key passes.
 
 Below is the result for the x-coordinate. The resulting p-value is < 2e-16, meaning there is a statistically significant difference between goals and shots. With the shot x-coordinate mean equal to 84.1 and lying outside the confidence interval for goals, 90.7 - 90.9, we can conclude that attempts on goal take further up the field are more likely to result in a goal.
 ```{r shots vs goals x}
 ttest_goals_v_shots_x
 ```
-Looking now at the results for the y-coordinate, a p-value of 0.005 is obtained, still indicating a statistically significant difference of this variable between goals and shots. The shot mean y-coordinate is 49.2 and sits just outside the confidence interval of 49.3 - 49.8 for the goals y-coordinate. This is an interesting result as we expected for there not to be a difference in the y-coordinate. This is because shots are taken from both sides of the field in about equal measure, yet it seems that perhaps the shot distribution favors the right side more than the left, but more goals are scored from a more central location. It could be that while this result is statistically significant, in reality though it probably isn't. For example, an average professional soccer pitch is about 70 meters wide. So, a difference of 0.1% in the y-coordinate is a difference of 0.07 meters, which is not really a significant difference.
+Looking now at the results for the y-coordinate, a p-value of 0.005 is obtained, still indicating a statistically significant difference of this variable between goals and shots. The shot mean y-coordinate is 49.2 and sits just outside the confidence interval of 49.3 - 49.8 for the goals y-coordinate. This is an interesting result as we expected for there not to be a difference in the y-coordinate. This is because shots are taken from both sides of the field in about equal measure, yet it seems that perhaps the shot distribution favors the right side more than the left, but more goals are scored from a more central location. It could be that while this result is statistically significant, in reality though it probably isn't. For example, an average professional soccer pitch is about 70 meters wide. So, a difference of 0.1% in the y-coordinate is a difference of 0.07 meters, which is not really a significant difference. Results like this warrant further investigation and perhaps a more refined modeling approach that has fewer assumptions about distributions than the t-test.
 ```{r shots vs goals y}
 ttest_goals_v_shots_y
 ```
@@ -572,7 +572,7 @@ ttest_goals_v_shots_y
 ## Chapter 4: SMART Questions
 
 ### SMART Question 1: Which match variables result in the highest probability of a successful shot on goal?  
-The t-tests done in the previous section demonstrate that there are differences in our selected variables between key passes and assists and between shots and goals. However, this does not answer the question: which variables result in the highest probability on goal? In other words, in a match, what field positions should teams target to improve the likelihood of scoring a goal? To answer this, we calculated and plotted the success probabilities of the final pass (successful = assist = goal) and shots (successful = goal) as a function of their starting x-coordinate, y-coordinate and int the case of the final pass the pass distance. The results are shown below in Figure 6.
+The t-tests done in the previous section demonstrate that there are differences in our selected variables between key passes and assists and between shots and goals. However, this only points us to variables that matter (in that there is a difference in coordinates or distance between a successful and an unsuccessful event), and it does not fully answer the question: which variables result in the highest probability on goal? In other words, in a match, what field positions should teams target to improve the likelihood of scoring a goal? To answer this, we calculated and plotted the success probabilities of the final pass (successful = assist = goal) and shots (successful = goal) as a function of their starting x-coordinate, y-coordinate and in the case of the final pass, the pass distance. The results are shown below in Figure 6.
 ```{r Success probability plots, fig.show='hold', out.width='33%'}
 #Assist:key pass ratio x-coordinate
 assist_density_x<-density(assists_clean_x$x.Start,
@@ -685,6 +685,10 @@ plot(goal_shot_prob_y,
 From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, 
 
 ### SMART Question 2: How do these variables vary with different teams?
+Based on the t-test results, we now know that there is some evidence that there are differences between means of x & y coordinates and distance of key passes vs assists, and separately, x & y coordinates of shots and goals. An interesting follow-up question is whether or not teams build strategies around these variables and if so, do these strategies differ across teams? We can use boxplots to visualize and ANOVA to test for any differences.
+
+For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots and passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. For each of these teams, we plot the x and y coordinates and distance of their final passes (not distinguishing between assists and key passes because strategy is made prior to the end result of a goal or non-goal). We also plot the x and y coordinates of their shots (once again, not distinguising between goals and non-goals). See figure 7 below.
+
 ```{r worldcup teams, fig.show='hold', out.width='33%'}
 # Stack assist and key pass dataset
 assist_key_pass <-rbind(assists_clean, key_passes_clean)
@@ -760,6 +764,8 @@ sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name
 ```
 
 **Figure 7.** Boxplots of (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate of the five teams from the 2018 world cup with the highest tallies of assists + key passes and shots + goals.  
+
+
 ```{r anova test}
 #assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
 #assist_key_pass_dist
