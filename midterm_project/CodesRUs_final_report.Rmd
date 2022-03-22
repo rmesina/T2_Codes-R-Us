@@ -793,7 +793,7 @@ Similarly, with a p-value of 0.007, the ANOVA results show that there is some st
 shots_goals_x
 ```
 
-These results are indicate that the 5 teams do have differences in strategies in the World Cup when it comes to the x-coordinates of their shots and final passes. This matters because, from the t-tests already presented, differences in x-coordinate means of successful and unsuccessful events were statistically significantly different.
+These results indicate that the 5 teams do have differences in strategies in the World Cup when it comes to the x-coordinates of their shots and final passes. This matters because, from the t-tests already presented, differences in x-coordinate means of successful and unsuccessful events were statistically significantly different.
 
 What the ANOVA results do not tell us is which among the 5 teams are different from each other. The natural next step here is to conduct some sort of pairwise comparisons that can identify which pairs reveal significant differences - something our team can consider in the future. Our team also hasn't reported the ANOVA results for variables that did not show statistically significant differences. This is due to the limited sample we used for demonstration purposes. We can consider running ANOVA over all teams in the World Cup and see from there if we see any differences. For now, it is enough to say that among the 5 teams chosen for this project, there is no evidence of different strategies when it comes to y-coordinates and distance.
 
