@@ -687,7 +687,7 @@ From these plots we can make some conclusions about each variables role in deter
 ### SMART Question 2: How do these variables vary with different teams?
 Based on the t-test results, we now know that there is some evidence that there are differences between means of x & y coordinates and distance of key passes vs assists, and separately, x & y coordinates of shots and goals. An interesting follow-up question is whether or not teams build strategies around these variables and if so, do these strategies differ across teams? We can use boxplots to visualize and ANOVA to test for any differences.
 
-For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots and passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. For each of these teams, we plot the x and y coordinates and distance of their final passes (not distinguishing between assists and key passes because strategy is made prior to the end result of a goal or non-goal). We also plot the x and y coordinates of their shots (once again, not distinguising between goals and non-goals). See figure 7 below.
+For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots and passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. For each of these teams, we plot the x and y coordinates and distance of their final passes (not distinguishing between assists and key passes because strategy is made prior to the end result of a goal or non-goal). We also plot the x and y coordinates of their shots (once again, not distinguishing between goals and non-goals). See Figure 7 below.
 
 ```{r worldcup teams, fig.show='hold', out.width='33%'}
 # Stack assist and key pass dataset
@@ -709,7 +709,7 @@ ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$x.Start ~ assist_key_pass_wc_top5$T
                      cex.lab=1.5,
                      cex.axis=1.25,
                      cex.main=1.75,
-                     ylim=c(0,100))
+                     ylim=c(30,100))
 
 ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$y.Start ~ assist_key_pass_wc_top5$Team.Name, 
                      main = "Assist or Key Pass y-coordinate", 
@@ -750,7 +750,7 @@ sg_box_x_wc<-boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name
                      cex.lab=1.5,
                      cex.axis=1.25,
                      cex.main=1.75,
-                     ylim=c(0,100))
+                     ylim=c(50,100))
 
 sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, 
                      main = "Shot or Goal y-coordinate", 
@@ -767,9 +767,35 @@ sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name
 
 
 ```{r anova test}
-#assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
-#assist_key_pass_dist
+# install.packages("rstatix")
+library(rstatix)
+
+assist_key_pass_x <- assist_key_pass_wc_top5 %>% anova_test(x.Start ~ Team.Name)
+
+assist_key_pass_y <- assist_key_pass_wc_top5 %>% anova_test(y.Start ~ Team.Name)
+
+assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
+
+shots_goals_x <- shots_goals_wc_top5 %>% anova_test(x.Start ~ Team.Name)
+
+shots_goals_y <- shots_goals_wc_top5 %>% anova_test(y.Start ~ Team.Name)
+
 ```
+With a p-value of 0.02, the ANOVA results show that there is some statistical evidence of differences across the five teams with respect to the x-coordinates of their final passes.
+
+```{r anova result assist_key_pass_x}
+assist_key_pass_x
+```
+
+Similarly, with a p-value of 0.007, the ANOVA results show that there is some statistical evidence of differences across the five teams with respect to the x-coordinates of their shots.
+
+```{r anova result shots_goals_x}
+shots_goals_x
+```
+
+These results are indicate that the 5 teams do have differences in strategies in the World Cup when it comes to the x-coordinates of their shots and final passes. This matters because, from the t-tests already presented, differences in x-coordinate means of successful and unsuccessful events were statistically significantly different.
+
+What the ANOVA results do not tell us is which among the 5 teams are different from each other. The natural next step here is to conduct some sort of pairwise comparisons that can identify which pairs reveal significant differences - something our team can consider in the future. Our team also hasn't reported the ANOVA results for variables that did not show statistically significant differences. This is due to the limited sample we used for demonstration purposes. We can consider running ANOVA over all teams in the World Cup and see from there if we see any differences. For now, it is enough to say that among the 5 teams chosen for this project, there is no evidence of different strategies when it comes to y-coordinates and distance.
 
 ![source: https://www.presentationgo.com/presentation/knockout-stage-powerpoint-google-slides/](./JPEGS/2018-Fifa-World-Cup-Knockout-Stage.png)  
 
