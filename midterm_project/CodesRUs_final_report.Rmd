@@ -34,9 +34,6 @@ options(scientific=T, digits = 3)
 
 # Determining Which Variables Contribute to Shot Success in Soccer
 ![Source: https://www.thepfa.com/news/2019/3/5/goal-celebrations](./JPEGS/goal-celebrations.jpg)
-```{r goal celebration image}
-
-```
 ```{r loading data}
 #Load Event data from each competition as a dataframe
 england<-data.frame(read.csv('./datasets/events_England_new.csv'))
@@ -122,27 +119,20 @@ key_passes<-subset(event_data, Tag.1=='Key pass')
 ```
 
 ## Chapter 3: Exploratory Data Analysis
-### 3.1 At a Glance
+### 3.1 Understanding the Field
+To understand our data, we needed to first understand how the field is set up. The field is set up so that the length is given by the x-coordinate, and the width is given by the y-coordinate. Each coordinate is given as a percentage. Events are always oriented so that the attacking team is going from left to right.
 
-```{r Event summaries}
-ls<-c('Min', '1st Quant', 'Median', '3rd Quant', 'Max')
-key_pass_sum_x<-summary(key_passes$x.Start)
-key_pass_sum_y<-summary(key_passes$y.Start)
-key_pass_sum_d<-summary(key_passes$dist)
-#assist_sum<-summary(assists[c('x.Start', 'y.Start', 'dist')])
-#shots_sum<-summary(shots[c('x.Start', 'y.Start', 'dist')])
-#goals_sum<-summary(goals[c('x.Start', 'y.Start', 'dist')])
-#st(key_passes)
-#xkabledply(key_pass_sum, title = 'Key Passes Summary', wide = TRUE)
-#xkabledply(assist_sum, title = 'Assists Summary')
-#xkabledply(shots_sum, title = 'Shots Summary')
-#xkabledply(goals_sum, title = 'Goals Summary')
+<center>
 
-```
+![](./JPEGS/Soccer_pitch_coordinates.jpg){height=66%, width=66%}
+
+<center>
+
+**Figure 1.** Pitch schematic showing direction of attack and event x,y-coordinate example.
 
 ### 3.2 Event Visualization
 #### 3.2.1 Visualizing Field Locations
-Using the ggsoccer library to plot event data on an image of a pitch and bordering the x and y axis with event density plots we were quickly able to understand how each event is distributed on the pitch, shown in Figure 1. Several observations can be made from this visualization. First, the x & y-coordinates for both key passes and assists are multimodal and appear to be symmetric across the y=50 line. This makes sense as teams try to attack down both sides of the field. With this data being an average over so many games getting a symmetric split between the two sides of the field is expected. This symmetry could be a factor that varies from team to team, however. Second, the x & y-coordinate distributions for shots and goals is much closer to normal. The exception being the x-coordinate for shots which is bimodal. This is interesting because it indicates that a significant portion of shots are take farther away from goal, however, very few goals are scored from these shots. Despite this, players still seem to take these shots. 
+Using the ggsoccer library to plot event data on an image of a pitch and bordering the x and y axis with event density plots we were quickly able to understand how each event is distributed on the pitch, shown in Figure 2. Several observations can be made from this visualization. First, the x & y-coordinates for both key passes and assists are multimodal and appear to be symmetric across the y=50 line. This makes sense as teams try to attack down both sides of the field. With this data being an average over so many games getting a symmetric split between the two sides of the field is expected. This symmetry could be a factor that varies from team to team, however. Second, the x & y-coordinate distributions for shots and goals is much closer to normal. The exception being the x-coordinate for shots which is bimodal. This is interesting because it indicates that a significant portion of shots are take farther away from goal, however, very few goals are scored from these shots. Despite this, players still seem to take these shots. 
   
 ```{r plot events on soccer pitch}
 shots_fig<-ggplot(shots, aes(x=x.Start, y=y.Start))+
@@ -293,10 +283,10 @@ assist_dist_pitch
 shot_dist_pitch
 goal_dist_pitch
 ```
-**Figure 1.** Event field locations and x & y-coordinate density plots for (Top Left) Key Passes, (Top Right) Assists, (Bottom Left) Shots, and (Bottom Right) Goals.
+**Figure 2.** Event field locations and x & y-coordinate density plots for (Top Left) Key Passes, (Top Right) Assists, (Bottom Left) Shots, and (Bottom Right) Goals.
 
 #### 3.2.2 Event Distance Distributions
-The distance distributions for key passes and assists are displayed in Figure 2. Both show fairly normal distributions, despite the fact that neither the x,y-coordinates for these two events show normal distributions.
+The distance distributions for key passes and assists are displayed in Figure 3. Both show fairly normal distributions, despite the fact that neither the x,y-coordinates for these two events show normal distributions.
 
 ```{r event distance distribution, fig.show='hold', out.width='50%'}
 key_pass_dist<-ggplot()+
@@ -351,10 +341,10 @@ goal_dist<-ggplot()+
 key_pass_dist
 assist_dist
 ```
-**Figure 2.** Event distance for (Left)  Key Passes and (Right) Assists.
+**Figure 3.** Event distance for (Left)  Key Passes and (Right) Assists.
 
 ### 3.3 Differences in Event Distributions
-From looking at Figures 1 and 2, we already see several points that are outliers. For example, when looking at the figure showing shot events several shots can be seen to occur in the defensive half of the field. When looking at the bordering density plot, we see that these events, while they do occur, are rare compared with the majority of shots taken. From this we felt safe cleaning our events to remove these sorts of outliers before taking a deep dive into the distributions.
+From looking at Figures 2 and 3, we already see several points that are outliers. For example, when looking at the figure showing shot events several shots can be seen to occur in the defensive half of the field. When looking at the bordering density plot, we see that these events, while they do occur, are rare compared with the majority of shots taken. From this we felt safe cleaning our events to remove these sorts of outliers before taking a deep dive into the distributions.
 ```{r checking for outliers, include=FALSE}
 #Set to TRUE of all plots for each varialbe want to be seen.
 show_all_plots=FALSE
@@ -493,7 +483,7 @@ ak_hist_x
 ak_hist_y
 ak_hist_d
 ```
-**Figure 3.** Key pass (yellow) and assist (green) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.  
+**Figure 4.** Key pass (yellow) and assist (green) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.  
 
 ```{r comparing shots and goals distributions, fig.show='hold', out.width='50%'}
 sg_hist_x<-ggplot()+
@@ -535,7 +525,7 @@ sg_hist_y<-ggplot()+
 sg_hist_x
 sg_hist_y
 ```
-**Figure 4.** Shots (red) and Goals (blue) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.
+**Figure 5.** Shots (red) and Goals (blue) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.
 
 #### 3.3.2 T-tests: Comparing Assists vs Key Passes and Shots vs Goals
 The t-tests were done assuming a normal distribution of the event variables despite most of the distributions not being normal. This was quick and easy, even though there's room for error it still allows us to get a sense of the differences in variables the determine success or failure.
@@ -581,24 +571,8 @@ ttest_goals_v_shots_y
 
 ## Chapter 4: SMART Questions
 
-### SMART Question 1: Which match variables result in the highest probability of a successful shot on goal?
+### SMART Question 1: Which match variables result in the highest probability of a successful shot on goal?  
 ```{r Success probability plots, fig.show='hold', out.width='33%'}
-#Assist:Key pass ratio
-assist_density_length<-density(assists_clean$dist,
-                               n=100, from = 0, to = 100)
-key_pass_density_length<-density(key_passes_clean$dist,
-                                 n=100, from = 0, to = 100)
-
-assist_density_length$y=assist_density_length$n/sum(assist_density_length$y)*assist_density_length$y
-key_pass_density_length$y=key_pass_density_length$n/sum(key_pass_density_length$y)*key_pass_density_length$y
-total_keyassists=assist_density_length$y+key_pass_density_length$y
-assist_prob_length=assist_density_length$y/total_keyassists
-
-plot(assist_prob_length, ylim=c(0,1),
-     xlab='Pass Distance',
-     ylab='Goal Probability',
-     main = 'Probability of pass resulting in a goal vs distance of pass')
-
 #Assist:key pass ratio x-coordinate
 assist_density_x<-density(assists_clean_x$x.Start,
                           n=100, from = 0, to = 100)
@@ -614,7 +588,10 @@ plot(assist_prob_x,
      xlim=c(50, 100), ylim=c(0,1),
      xlab='Field Length Percentage',
      ylab='Goal Probability',
-     main = 'Probability of pass resulting in a goal vs x-coordinate of pass')
+     main = 'Goal Probability: Final Pass x-coordinate',
+     cex.lab=1.5,
+     cex.axis=1.5,
+     cex.main=1.75)
 
 #Assist:key pass ratio y-coordinate
 assist_density_y<-density(assists_clean_y$y.Start,
@@ -630,8 +607,29 @@ assist_prob_y=assist_density_y$y/total_keyassists_y
 plot(assist_prob_y, ylim=c(0,1),
      xlab='Field Width Percentage',
      ylab='Goal Probability',
-     main = 'Probability of pass resulting in a goal vs y-coordinate of pass')
+     main = 'Goal Probability: Final Pass y-coordinate',
+     cex.lab=1.5,
+     cex.axis=1.5,
+     cex.main=1.75)
 
+#Assist:Key pass ratio distance
+assist_density_length<-density(assists_clean$dist,
+                               n=100, from = 0, to = 100)
+key_pass_density_length<-density(key_passes_clean$dist,
+                                 n=100, from = 0, to = 100)
+
+assist_density_length$y=assist_density_length$n/sum(assist_density_length$y)*assist_density_length$y
+key_pass_density_length$y=key_pass_density_length$n/sum(key_pass_density_length$y)*key_pass_density_length$y
+total_keyassists=assist_density_length$y+key_pass_density_length$y
+assist_prob_length=assist_density_length$y/total_keyassists
+
+plot(assist_prob_length, ylim=c(0,1),
+     xlab='Pass Distance',
+     ylab='Goal Probability',
+     main = 'Goal Probability: Final Pass Distance',
+     cex.lab=1.5,
+     cex.axis=1.5,
+     cex.main=1.75)
 
 #Goal percentage x-coordinate
 goal_density_x<-density(goals_clean_x$x.Start,
@@ -649,7 +647,10 @@ plot(goal_shot_prob_x,
      xlim=c(60, 100), ylim=c(0,1),
      xlab='Field Length Percentage',
      ylab='Goal Probability',
-     main = 'Probability of Shot resulting in a goal vs x-coordinate of shot')
+     main = 'Goal Probability: Shot x-coordinate',
+     cex.lab=1.5,
+     cex.axis=1.5,
+     cex.main=1.75)
 
 #Goal percentage y-coordinate
 goal_density_y<-density(goals_clean$y.Start,
@@ -667,8 +668,13 @@ plot(goal_shot_prob_y,
      xlim=c(0, 100), ylim=c(0,1),
      xlab='Field Width Percentage',
      ylab='Goal Probability',
-     main = 'Probability of Shot resulting in a goal vs y-coordinate of shot')
+     main = 'Goal Probability: Shot y-coordinate',
+     cex.lab=1.5,
+     cex.axis=1.5,
+     cex.main=1.75)
 ```
+  
+**Figure 6.** Goal probability plots for (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate.
 
 ### SMART Question 2: How do these variables vary with different teams?
 ```{r worldcup teams, fig.show='hold', out.width='33%'}
@@ -683,11 +689,35 @@ assist_key_pass_wc$Team.Name <- as.character(assist_key_pass_wc$Team.Name)
 
 assist_key_pass_wc_top5 <- subset(assist_key_pass_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
 
-ak_box_dist_wc<-boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, main = "Assist or Key Pass Distance by Team", ylab = "Distance", xlab = "Team", col=c("red","orange","yellow","green","blue"))
+ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$x.Start ~ assist_key_pass_wc_top5$Team.Name,
+                     main = "Assist or Key Pass x-coordinate", 
+                     ylab = "x-coordinate", 
+                     xlab = "Team", 
+                     col=c("red","orange","yellow","green","blue"), 
+                     cex.lab=1.5,
+                     cex.axis=1.25,
+                     cex.main=1.75,
+                     ylim=c(0,100))
 
-ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$x.Start ~ assist_key_pass_wc_top5$Team.Name, main = "Assist or Key Pass Distance by Team", ylab = "x-coordinate", xlab = "Team", col=c("red","orange","yellow","green","blue"))
+ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$y.Start ~ assist_key_pass_wc_top5$Team.Name, 
+                     main = "Assist or Key Pass y-coordinate", 
+                     ylab = "y-coordinate", 
+                     xlab = "Team", 
+                     col=c("red","orange","yellow","green","blue"),
+                     cex.lab=1.5,
+                     cex.axis=1.25,
+                     cex.main=1.75,
+                     ylim=c(0,100))
 
-ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$y.Start ~ assist_key_pass_wc_top5$Team.Name, main = "Assist or Key Pass Distance by Team", ylab = "x-coordinate", xlab = "Team", col=c("red","orange","yellow","green","blue"))
+ak_box_dist_wc<-boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, 
+                        main = "Assist or Key Pass Distance", 
+                        ylab = "Distance", 
+                        xlab = "Team", 
+                        col=c("red","orange","yellow","green","blue"),
+                        cex.lab=1.5,
+                        cex.axis=1.25,
+                        cex.main=1.75,
+                        ylim=c(0,100))
 
 # Stack shot and goal dataset
 shots_goals <-rbind(shots_clean, goals_clean)
@@ -700,16 +730,35 @@ shots_goals_wc$Team.Name <- as.character(shots_goals_wc$Team.Name)
 
 shots_goals_wc_top5 <- subset(shots_goals_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
 
-sg_box_x_wc<-boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal X.Start by Team", ylab = "x-coordinate", xlab = "Team", col=c("red","orange","yellow","green","blue"))
+sg_box_x_wc<-boxplot(shots_goals_wc_top5$x.Start ~ shots_goals_wc_top5$Team.Name, 
+                     main = "Shot or Goal x-coordinate", 
+                     ylab = "x-coordinate", 
+                     xlab = "Team", 
+                     col=c("red","orange","yellow","green","blue"),
+                     cex.lab=1.5,
+                     cex.axis=1.25,
+                     cex.main=1.75,
+                     ylim=c(0,100))
 
-
-sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, main = "Shot or Goal Y.Start by Team", ylab = "y-coordinate", xlab = "Team", col=c("red","orange","yellow","green","blue"))  
+sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name, 
+                     main = "Shot or Goal y-coordinate", 
+                     ylab = "y-coordinate", 
+                     xlab = "Team", 
+                     col=c("red","orange","yellow","green","blue"),
+                     cex.lab=1.5,
+                     cex.axis=1.25,
+                     cex.main=1.75,
+                     ylim=c(0,100))  
 ```
+
+**Figure 7.** Boxplots of (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate of the five teams from the 2018 world cup with the highest tallies of assists + key passes and shots + goals.  
 ```{r anova test}
 #assist_key_pass_dist <- assist_key_pass_wc_top5 %>% anova_test(dist ~ Team.Name)
 #assist_key_pass_dist
 ```
-  
+
+![source: https://www.presentationgo.com/presentation/knockout-stage-powerpoint-google-slides/](./JPEGS/2018-Fifa-World-Cup-Knockout-Stage.png)  
+
 ## Chapter 5: Modelling Shot Success
 
 ## Chapter 6: Conclusions
