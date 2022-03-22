@@ -591,7 +591,8 @@ plot(assist_prob_x,
      main = 'Goal Probability: Final Pass x-coordinate',
      cex.lab=1.5,
      cex.axis=1.5,
-     cex.main=1.75)
+     cex.main=1.75,
+     pch=19)
 
 #Assist:key pass ratio y-coordinate
 assist_density_y<-density(assists_clean_y$y.Start,
@@ -610,7 +611,8 @@ plot(assist_prob_y, ylim=c(0,1),
      main = 'Goal Probability: Final Pass y-coordinate',
      cex.lab=1.5,
      cex.axis=1.5,
-     cex.main=1.75)
+     cex.main=1.75,
+     pch=19)
 
 #Assist:Key pass ratio distance
 assist_density_length<-density(assists_clean$dist,
@@ -629,7 +631,8 @@ plot(assist_prob_length, ylim=c(0,1),
      main = 'Goal Probability: Final Pass Distance',
      cex.lab=1.5,
      cex.axis=1.5,
-     cex.main=1.75)
+     cex.main=1.75,
+     pch=19)
 
 #Goal percentage x-coordinate
 goal_density_x<-density(goals_clean_x$x.Start,
@@ -650,7 +653,8 @@ plot(goal_shot_prob_x,
      main = 'Goal Probability: Shot x-coordinate',
      cex.lab=1.5,
      cex.axis=1.5,
-     cex.main=1.75)
+     cex.main=1.75,
+     pch=19)
 
 #Goal percentage y-coordinate
 goal_density_y<-density(goals_clean$y.Start,
@@ -671,7 +675,8 @@ plot(goal_shot_prob_y,
      main = 'Goal Probability: Shot y-coordinate',
      cex.lab=1.5,
      cex.axis=1.5,
-     cex.main=1.75)
+     cex.main=1.75,
+     pch=19)
 ```
   
 **Figure 6.** Goal probability plots for (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate.
