@@ -572,6 +572,7 @@ ttest_goals_v_shots_y
 ## Chapter 4: SMART Questions
 
 ### SMART Question 1: Which match variables result in the highest probability of a successful shot on goal?  
+The t-tests done in the previous section demonstrate that there are differences in our selected variables between key passes and assists and between shots and goals. However, this does not answer the question: which variables result in the highest probability on goal? In other words, in a match, what field positions should teams target to improve the likelihood of scoring a goal? To answer this, we calculated and plotted the success probabilities of the final pass (successful = assist = goal) and shots (successful = goal) as a function of their starting x-coordinate, y-coordinate and int the case of the final pass the pass distance. The results are shown below in Figure 6.
 ```{r Success probability plots, fig.show='hold', out.width='33%'}
 #Assist:key pass ratio x-coordinate
 assist_density_x<-density(assists_clean_x$x.Start,
@@ -679,7 +680,9 @@ plot(goal_shot_prob_y,
      pch=19)
 ```
   
-**Figure 6.** Goal probability plots for (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate.
+**Figure 6.** Goal probability plots for (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate.  
+  
+From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, 
 
 ### SMART Question 2: How do these variables vary with different teams?
 ```{r worldcup teams, fig.show='hold', out.width='33%'}
