@@ -4,8 +4,6 @@ authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
 date: "March 9, 2022"
 output:
   html_document: 
-    prettydoc::html_pretty:
-      theme: cayman
     code_folding: hide
     toc: yes
     toc_float: yes
@@ -680,19 +678,79 @@ plot(goal_shot_prob_y,
 From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, goal probability varies with respect to all selected variables. The one exception to this is the final pass x-coordinate which remains relatively constant. Second, goal probability shows the greatest change as functions of final pass distance and shot x-coordinate. In the case of final pass distance, the probability of a goal approaches 0.4 as the length of the pass decreases. In the case of shot x-coordinate, the goal probability also approaches 0.4 as the x-coordinate approaches 100, gets closer to the goal. The goal probability of the final pass and shot y-coordinates also shows peaks, in these two cases the peak is symmetric around the y=50 line. However, the difference between goal probability at the peak and at the baseline is slightly lower, about 0.25, compared with the final pass distance and shot x-coordinate variables.
 
 ### SMART Question 2: How do these variables vary with different teams?
-```{r worldcup teams, fig.show='hold', out.width='33%'}
+```{r worldcup teams}
 # Stack assist and key pass dataset
-assist_key_pass <-rbind(assists_clean, key_passes_clean)
-assist_key_pass_wc <- subset(assist_key_pass, competition=="World Cup")
+assist_wc<-subset(worldcup, Tag.1=='Key pass')
+keypass_wc<-subset(worldcup, Tag.1=='Assist')
+assist_keypass_wc<-rbind(assist_wc, keypass_wc)
 
-# Focus on top 5 teams with most assists + key passes
-freq1 <- sort(table(assist_key_pass_wc$Team.Name),decreasing=T)
+#convert x and y coordinate columns from characters to integer values
+assist_keypass_wc$x.End <- as.numeric(assist_keypass_wc$x.End)
+assist_keypass_wc$y.End <- as.numeric(assist_keypass_wc$y.End)
 
-assist_key_pass_wc$Team.Name <- as.character(assist_key_pass_wc$Team.Name)
+assist_keypass_wc$x.Start <- as.numeric(assist_keypass_wc$x.Start)
+assist_keypass_wc$y.Start <- as.numeric(assist_keypass_wc$y.Start)
 
-assist_key_pass_wc_top5 <- subset(assist_key_pass_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
+#convert event, subevent, tags, players, team labels, etc... to factors
+assist_keypass_wc$Event.Name=as.factor(assist_keypass_wc$Event.Name)
+assist_keypass_wc$Subevent.Name=as.factor(assist_keypass_wc$Subevent.Name)
+assist_keypass_wc$Match.Period=as.factor(assist_keypass_wc$Match.Period)
+assist_keypass_wc$Match.Date=as.factor(assist_keypass_wc$Match.Date)
+assist_keypass_wc$Player=as.factor(assist_keypass_wc$Player)
+assist_keypass_wc$Team.Name=as.factor(assist_keypass_wc$Team.Name)
+assist_keypass_wc$Tag.1=as.factor(assist_keypass_wc$Tag.1)
+assist_keypass_wc$Tag.2=as.factor(assist_keypass_wc$Tag.2)
+assist_keypass_wc$Tag.3=as.factor(assist_keypass_wc$Tag.3)
+assist_keypass_wc$Tag.4=as.factor(assist_keypass_wc$Tag.4)
+assist_keypass_wc$Tag.5=as.factor(assist_keypass_wc$Tag.5)
+assist_keypass_wc$Tag.6=as.factor(assist_keypass_wc$Tag.6)
 
-ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$x.Start ~ assist_key_pass_wc_top5$Team.Name,
+assist_keypass_wc<-assist_keypass_wc %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+assist_keypass_wc$dist <- as.numeric(assist_keypass_wc$dist)
+
+freq1 <- sort(table(assist_keypass_wc$Team.Name),decreasing=T)
+
+# Stack shot and goal dataset
+shots_wc<-subset(worldcup, Event.Name=='Shot')
+goals_wc<-subset(worldcup, Tag.1=='Goal')
+shots_goals <-rbind(shots_wc, goals_wc)
+shots_goals_wc<- subset(shots_goals, competition=="World Cup")
+
+#convert x and y coordinate columns from characters to integer values
+shots_goals_wc$x.End <- as.numeric(shots_goals_wc$x.End)
+shots_goals_wc$y.End <- as.numeric(shots_goals_wc$y.End)
+
+shots_goals_wc$x.Start <- as.numeric(shots_goals_wc$x.Start)
+shots_goals_wc$y.Start <- as.numeric(shots_goals_wc$y.Start)
+
+#convert event, subevent, tags, players, team labels, etc... to factors
+shots_goals_wc$Event.Name=as.factor(shots_goals_wc$Event.Name)
+shots_goals_wc$Subevent.Name=as.factor(shots_goals_wc$Subevent.Name)
+shots_goals_wc$Match.Period=as.factor(shots_goals_wc$Match.Period)
+shots_goals_wc$Match.Date=as.factor(shots_goals_wc$Match.Date)
+shots_goals_wc$Player=as.factor(shots_goals_wc$Player)
+shots_goals_wc$Team.Name=as.factor(shots_goals_wc$Team.Name)
+shots_goals_wc$Tag.1=as.factor(shots_goals_wc$Tag.1)
+shots_goals_wc$Tag.2=as.factor(shots_goals_wc$Tag.2)
+shots_goals_wc$Tag.3=as.factor(shots_goals_wc$Tag.3)
+shots_goals_wc$Tag.4=as.factor(shots_goals_wc$Tag.4)
+shots_goals_wc$Tag.5=as.factor(shots_goals_wc$Tag.5)
+shots_goals_wc$Tag.6=as.factor(shots_goals_wc$Tag.6)
+
+shots_goals_wc<-shots_goals_wc %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+shots_goals_wc$dist <- as.numeric(shots_goals_wc$dist)
+
+freq2 <- sort(table(shots_goals_wc$Team.Name),decreasing=T)
+freq1
+freq2
+```
+
+```{r boxplots of wc top five, fig.show='hold', out.width='33%'}
+assist_keypass_wc$Team.Name <- as.character(assist_keypass_wc$Team.Name)
+
+assist_keypass_wc_top5 <- subset(assist_keypass_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
+
+ak_box_x_wc<-boxplot(assist_keypass_wc_top5$x.Start ~ assist_keypass_wc_top5$Team.Name,
                      main = "Assist or Key Pass x-coordinate", 
                      ylab = "x-coordinate", 
                      xlab = "Team", 
@@ -702,7 +760,7 @@ ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$x.Start ~ assist_key_pass_wc_top5$T
                      cex.main=1.75,
                      ylim=c(0,100))
 
-ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$y.Start ~ assist_key_pass_wc_top5$Team.Name, 
+ak_box_y_wc<-boxplot(assist_keypass_wc_top5$y.Start ~ assist_keypass_wc_top5$Team.Name, 
                      main = "Assist or Key Pass y-coordinate", 
                      ylab = "y-coordinate", 
                      xlab = "Team", 
@@ -712,7 +770,7 @@ ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$y.Start ~ assist_key_pass_wc_top5$T
                      cex.main=1.75,
                      ylim=c(0,100))
 
-ak_box_dist_wc<-boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, 
+ak_box_dist_wc<-boxplot(assist_keypass_wc_top5$dist ~ assist_keypass_wc_top5$Team.Name, 
                         main = "Assist or Key Pass Distance", 
                         ylab = "Distance", 
                         xlab = "Team", 
@@ -722,13 +780,7 @@ ak_box_dist_wc<-boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$T
                         cex.main=1.75,
                         ylim=c(0,100))
 
-# Stack shot and goal dataset
-shots_goals <-rbind(shots_clean, goals_clean)
-shots_goals_wc <- subset(shots_goals, competition=="World Cup")
-
 # Focus on top 5 teams with most goals + shots
-freq2 <- sort(table(shots_goals_wc$Team.Name),decreasing=T)
-
 shots_goals_wc$Team.Name <- as.character(shots_goals_wc$Team.Name)
 
 shots_goals_wc_top5 <- subset(shots_goals_wc, Team.Name == "Belgium" | Team.Name == "England" | Team.Name == "Croatia" | Team.Name == "Brazil" | Team.Name == "France")
@@ -752,6 +804,7 @@ sg_box_y_wc<-boxplot(shots_goals_wc_top5$y.Start ~ shots_goals_wc_top5$Team.Name
                      cex.axis=1.25,
                      cex.main=1.75,
                      ylim=c(0,100))  
+
 ```
 
 **Figure 7.** Boxplots of (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate of the five teams from the 2018 world cup with the highest tallies of assists + key passes and shots + goals.  
