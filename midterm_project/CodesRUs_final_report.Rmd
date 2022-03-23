@@ -88,7 +88,7 @@ The dataset contains all matches played in Europe’s top five leagues during th
 str(event_data)
 ```
 ### 2.2 Calculating and Adding Event Distance Variable
-One variable we are interested in looking at is the distance of assists and key passes and whether this plays a role in the success of the pass and whether it results in a successful shot on goal or not. We have to calculate distance for each event using the x,y-coordinates given in the data set. To do this we assumed field dimensions of 120 yards in length of 75 yards wide. This is the average size of a soccer pitch. We then are able to calculate event distances in yards instead of percentages. If the x and y coordinates in percentage were used we'd get a distorted distance since in reality a soccer field is not square.
+One variable we are interested in looking at is the distance of assists and key passes and whether this plays a role in the success of the pass and whether it results in a successful shot on goal or not. We have to calculate distance for each event using the x,y-coordinates given in the data set. To do this we assumed field dimensions of 120 yards in length of 75 yards wide. This is the average size of a soccer pitch. We then are able to calculate event distances in yards instead of percentages. If the x and y coordinates in percentage were used we'd get a distorted distance since in reality a soccer field is not square. In this report 
 ```{r calculate distance}
 
 event_data<-event_data %>% mutate(dist = sqrt(((x.End-x.Start)*1.20)^2+((y.End-y.Start)*0.75)^2))
@@ -525,7 +525,7 @@ sg_hist_y
 **Figure 5.** Shots (red) and Goals (blue) histograms for (Left) x-coordinate, (Middle) y-coordinate, (Right) distance with normal distribution fits.
 
 #### 3.3.2 T-tests: Comparing Assists vs Key Passes and Shots vs Goals
-The t-tests were done assuming a normal distribution of the event variables despite most of the distributions not being normal. This was quick and easy, even though there's room for error it still allows us to get a sense of the differences in variables that determine success or failure.
+T-tests were performed to check for differences between x & y coordinates between key passes and assists and between shots and goals. The pass distance between key passes and assists was also checked for differences using the t-test. With population sizes for each of our events on the order of several thousand for assists and goals to greater than ten thousand for key passes and shots, t-tests can still be applied to determine differences in the sample means, thanks to the central limit theorem which states that the distribution of sample means of a population still show a normal distribution, with large enough sample size, even if the population shows a non-normal distribution.
 ```{r hypothesis testing}
 
 #Distance

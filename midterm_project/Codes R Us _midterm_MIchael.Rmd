@@ -113,6 +113,14 @@ goals_clean_y<-na.omit(goals_clean_y)
 ```
 
 ```{r, checking normality}
+#keypass_x_norm<-shapiro.test(key_passes_clean$x.Start)
+#keypass_x_norm
+assist_x_norm<-shapiro.test(assists_clean$x.Start)
+assist_y_norm<-shapiro.test(assists_clean$y.Start)
+assist_d_norm<-shapiro.test(assists_clean$dist)
+assist_x_norm
+assist_y_norm
+assist_d_norm
 
 ```
 
@@ -161,6 +169,7 @@ assist_modes_y_loc
 #key_pass_modes_x_loc
 key_pass_modes_y_loc
 ```
+
 ```{r density mapping  for pitch plots}
 get_density <- function(x, y, ...) {
   dens <- MASS::kde2d(x, y, ...)
