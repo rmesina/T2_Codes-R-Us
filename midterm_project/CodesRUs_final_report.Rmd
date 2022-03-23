@@ -97,7 +97,7 @@ event_data$dist <- as.numeric(event_data$dist)
 ```
 
 ### 2.3 Subsetting Data
-With so many variables available we had to start by narrowing the number to look at. Since we’re interested in what variables affect the success rate of a shot on goal, we wanted to look into the variables immediately preceding a goal. Upon consulting with a subject matter expert on our team, we've identified those variables to be shots, assists, and key passes, and the x,y-coordinates and event distance for each. Separate data frames were created for each of the following events of interest: 
+With so many variables available we had to start by narrowing the number to look at. Since we’re interested in what variables affect the success rate of a shot on goal, we wanted to look into the variables immediately preceding a goal. Upon consulting with a subject matter expert on our team, we've identified those variables to be shots, assists, and key passes, and the x,y-coordinates and event distance for each. It is worth noting that in our classroom presentation, we reported some analyses surrounding shot distance. Upon further inspection of the data, we found that the coordinates of the end points of goals and shots did not reflect what we expect to see in reality (in particular, the y coordinates of successful shots were not matching the location of the goal). Because of this, the team decided to omit the analysis on distance and focus on the x and y coordinates of the starting point. Separate data frames were created for each of the following events of interest: 
 
 1.	Key passes: pass leading to unsuccessful scoring opportunity 
 2.	Assists: pass leading to a goal   
