@@ -572,7 +572,7 @@ ttest_goals_v_shots_y
 ## Chapter 4: SMART Questions
 
 ### SMART Question 1: Which match variables result in the highest probability of a successful shot on goal?  
-The t-tests done in the previous section demonstrate that there are differences in our selected variables between key passes and assists and between shots and goals. However, this only points us to variables that matter (in that there is a difference in coordinates or distance between a successful and an unsuccessful event), and it does not fully answer the question: which variables result in the highest probability on goal? In other words, in a match, what field positions should teams target to improve the likelihood of scoring a goal? To answer this, we calculated and plotted the success probabilities of the final pass (successful = assist = goal) and shots (successful = goal) as a function of their starting x-coordinate, y-coordinate and in the case of the final pass, the pass distance. The results are shown below in Figure 6.
+The t-tests done in the previous section demonstrate that there are differences in our selected variables between key passes and assists and between shots and goals. However, this only points us to variables that matter (in that there is a difference in coordinates or distance between a successful and an unsuccessful event), and it does not fully answer the question: which variables result in the highest probability on goal? In other words, in a match, what field positions should teams target to improve the likelihood of scoring a goal? To answer this, we calculated and plotted the success probabilities of the final pass (successful = assist = goal) and shots (successful = goal) as a function of their starting x-coordinate, y-coordinate and in the case of the final pass, the pass distance. The results are shown below in Figure 6.  
 ```{r Success probability plots, fig.show='hold', out.width='33%'}
 #Assist:key pass ratio x-coordinate
 assist_density_x<-density(assists_clean_x$x.Start,
@@ -682,12 +682,16 @@ plot(goal_shot_prob_y,
   
 **Figure 6.** Goal probability plots for (Top Left) final pass x-coordinate, (Top Middle) final pass y-coordinate, (Top Right) final pass distance, (Bottom Left) shot x-coordinate, and (Bottom Right) shot y-coordinate.  
   
-From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, 
+From these plots we can make some conclusions about each variables role in determining a successful shot on goal. First, goal probability varies with respect to all selected variables. The one exception to this is the final pass x-coordinate which remains relatively constant. Second, goal probability shows the greatest change as functions of final pass distance and shot x-coordinate. In the case of final pass distance, the probability of a goal approaches 0.4 as the length of the pass decreases. In the case of shot x-coordinate, the goal probability also approaches 0.4 as the x-coordinate approaches 100, gets closer to the goal. The goal probability of the final pass and shot y-coordinates also shows peaks, in these two cases the peak is symmetric around the y=50 line. However, the difference between goal probability at the peak and at the baseline is slightly lower, about 0.25, compared with the final pass distance and shot x-coordinate variables. 
 
 ### SMART Question 2: How do these variables vary with different teams?
 Based on the t-test results, we now know that there is some evidence that there are differences between means of x & y coordinates and distance of key passes vs assists, and separately, x & y coordinates of shots and goals. An interesting follow-up question is whether or not teams build strategies around these variables and if so, do these strategies differ across teams? We can use boxplots to visualize and ANOVA to test for any differences.
 
-For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots and passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. For each of these teams, we plot the x and y coordinates and distance of their final passes (not distinguishing between assists and key passes because strategy is made prior to the end result of a goal or non-goal). We also plot the x and y coordinates of their shots (once again, not distinguishing between goals and non-goals). See Figure 7 below.
+For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots + goals and assists + key passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. This makes sense as with the exception of Brazil these teams were all semifinalists, and Brazil still making it to the quarterfinals of the 2018 World cup.
+
+![](./JPEGS/2018-Fifa-World-Cup-Knockout-Stage.png)  
+
+For each of these teams, we plot the x and y coordinates and distance of their final passes (not distinguishing between assists and key passes because strategy is made prior to the end result of a goal or non-goal). We also plot the x and y coordinates of their shots (once again, not distinguishing between goals and non-goals). See Figure 7 below.
 
 ```{r worldcup teams, fig.show='hold', out.width='33%'}
 # Stack assist and key pass dataset
@@ -796,8 +800,6 @@ shots_goals_x
 These results indicate that the 5 teams do have differences in strategies in the World Cup when it comes to the x-coordinates of their shots and final passes. This matters because, from the t-tests already presented, differences in x-coordinate means of successful and unsuccessful events were statistically significantly different.
 
 What the ANOVA results do not tell us is which among the 5 teams are different from each other. The natural next step here is to conduct some sort of pairwise comparisons that can identify which pairs reveal significant differences - something our team can consider in the future. Our team also hasn't reported the ANOVA results for variables that did not show statistically significant differences. This is due to the limited sample we used for demonstration purposes. We can consider running ANOVA over all teams in the World Cup and see from there if we see any differences. For now, it is enough to say that among the 5 teams chosen for this project, there is no evidence of different strategies when it comes to y-coordinates and distance.
-
-![source: https://www.presentationgo.com/presentation/knockout-stage-powerpoint-google-slides/](./JPEGS/2018-Fifa-World-Cup-Knockout-Stage.png)  
 
 ## Chapter 5: Modelling Shot Success
 
