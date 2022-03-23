@@ -79,19 +79,19 @@ event_data$Tag.6=as.factor(event_data$Tag.6)
 ```
 
 ## Chapter 1: Introduction
-Soccer is the most watched sport in the world and is a business for teams worth hundreds of millions of dollars. As a result, clubs put a great deal of time and resources towards achieving success. This includes collecting ever increasing amounts of data about their team’s performances and those of others. Unfortunately, most of these data sets are not publicly available. There are still small data sets that have become publicly available, such as this one obtained by Luca Pappalardo on Figshare. From this small data set we hope to gain some insight into the game and an understanding of how data is coming to be used in soccer. 
+Soccer is the most watched sport in the world and is a business for teams worth hundreds of millions of dollars. In fact, 43% of the sports viewers in the World are interested in watching soccer, compared to 37% from Basketball viewers; and the FIFA World Cup Media rights income budgeted a whopping total of $3.0 billion USD for this event alone. (Nielson Sports, 2018) As a result, clubs put a great deal of time and resources towards achieving success. This includes collecting ever increasing amounts of data about their team’s performances and those of others. Unfortunately, most of these data sets are not publicly available. There are still small data sets that have become publicly available, such as this one obtained by Luca Pappalardo on Figshare. From this small data set we hope to gain some insight into the game and an understanding of how data is coming to be used in soccer. 
 
 ## Chapter 2: Data Set Overview
 ### 2.1 Data Source
-The dataset contains all matches played in Europe’s top five leagues during the 2017/2018 season (380 matches per league for a total of 1900 matches, producing 643,149 match events), the 2016 European Championship (51 matches, producing 78,139 match events), and the 2018 World Cup (64 matches, 101,758 match events).
+The dataset contains all matches played in Europe’s top five leagues during the 2017/2018 season (380 matches per league for a total of 1900 matches, producing 643,149 match events), the 2016 European Championship (51 matches, producing 78,139 match events), and the 2018 World Cup (64 matches, 101,758 match events). The data was imported by league and then compiled into a single data frame, giving a total of 3,251,294 events and 19 variables. This data was originally released by Wyscout.
 ```{r}
 str(event_data)
 ```
 ### 2.2 Calculating and Adding Event Distance Variable
-One variable we are interested in looking at is the distance of assists and key passes and whether this plays a role in the success of the pass and whether it results in a successful shot on goal or not. We have to calculate distance for each event using the x,y-coordinates given in the data set.
+One variable we are interested in looking at is the distance of assists and key passes and whether this plays a role in the success of the pass and whether it results in a successful shot on goal or not. We have to calculate distance for each event using the x,y-coordinates given in the data set. To do this we assumed field dimensions of 120 yards in length of 75 yards wide. This is the average size of a soccer pitch. We then are able to calculate event distances in yards instead of percentages. If the x and y coordinates in percentage were used we'd get a distorted distance since in reality a soccer field is not square.
 ```{r calculate distance}
 
-event_data<-event_data %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+event_data<-event_data %>% mutate(dist = sqrt(((x.End-x.Start)*1.20)^2+((y.End-y.Start)*0.75)^2))
 
 event_data$dist <- as.numeric(event_data$dist)
 ```
@@ -312,7 +312,7 @@ assist_dist<-ggplot()+
 shot_dist<-ggplot()+
   geom_density(data=shots, aes(x=dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
   xlim(c(0,150))+
-  labs(title="Shot Distances", x="Distance", y="")+
+  labs(title="Shot Distances", x="Distance (yards)", y="")+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
         axis.text.x = element_text(size=16),
@@ -324,7 +324,7 @@ shot_dist<-ggplot()+
 goal_dist<-ggplot()+
   geom_density(data=goals, aes(x=dist, y=..density..), color='Black', fill='Blue', alpha=0.3)+
   xlim(c(0,150))+
-  labs(title="Goal Distances", x="Distance", y="")+
+  labs(title="Goal Distances", x="Distance (yards)", y="")+
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
         panel.border=element_rect(color='black', fill=NA),
@@ -416,6 +416,7 @@ goals_clean_y<-na.omit(goals_clean_y)
 
 ```
 #### 3.3.1 Fitting Event Distributions
+
 ```{r Comparing variable distributions, fig.show='hold', out.width='33%'}
 
 #Histograms of Assist and Key Pass x Coordinates
@@ -466,7 +467,7 @@ ak_hist_d<-ggplot()+
   
   stat_function(fun = dnorm, args = list(mean = mean(key_passes_clean$dist), sd = sd(key_passes_clean$dist)), color='Gold', fill='gold', size=1)+
   
-  labs(title="Distance of Assists and Key Passes", x="Distance", y="Normalized Count")+
+  labs(title="Distance of Assists and Key Passes", x="Distance (yards)", y="Normalized Count")+
   
   scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
   theme(panel.background = element_blank(),
@@ -549,7 +550,7 @@ When looking at the y-coordinate a p-value of 0.5 is obtained which would indica
 ```{r ttest results assists vs key passes y}
 ttest_assist_v_keypass_y
 ```
-The last variable to be looked at was the distance variable. The t-test here resulted in a p-value < 2e-16. This indicates that there is a significant difference between the distance covered by an assist vs a key pass, with assists having an average distance of 29.2 with a confidence interval from 28.7 - 29.8, and key passes having a mean distance of 33.2. This shows that final passes that have to cover a shorter distance are more likely to result in an assist.
+The last variable to be looked at was the distance variable. The t-test here resulted in a p-value < 2e-16. This indicates that there is a significant difference between the distance covered by an assist vs a key pass, with assists having an average distance of 24.3 yards with a confidence interval from 23.9 - 224.7, and key passes having a mean distance of 27.5 yards. This shows that final passes that have to cover a shorter distance are more likely to result in an assist.
 ```{r ttest results assists vs key passes dist}
 ttest_assist_v_keypass_dist
 ```
@@ -623,7 +624,7 @@ total_keyassists=assist_density_length$y+key_pass_density_length$y
 assist_prob_length=assist_density_length$y/total_keyassists
 
 plot(assist_prob_length, ylim=c(0,1),
-     xlab='Pass Distance',
+     xlab='Pass Distance (yards)',
      ylab='Goal Probability',
      main = 'Goal Probability: Final Pass Distance',
      cex.lab=1.5,
@@ -709,7 +710,7 @@ ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$x.Start ~ assist_key_pass_wc_top5$T
                      cex.lab=1.5,
                      cex.axis=1.25,
                      cex.main=1.75,
-                     ylim=c(30,100))
+                     ylim=c(0,100))
 
 ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$y.Start ~ assist_key_pass_wc_top5$Team.Name, 
                      main = "Assist or Key Pass y-coordinate", 
@@ -723,7 +724,7 @@ ak_box_x_wc<-boxplot(assist_key_pass_wc_top5$y.Start ~ assist_key_pass_wc_top5$T
 
 ak_box_dist_wc<-boxplot(assist_key_pass_wc_top5$dist ~ assist_key_pass_wc_top5$Team.Name, 
                         main = "Assist or Key Pass Distance", 
-                        ylab = "Distance", 
+                        ylab = "Distance (yards)", 
                         xlab = "Team", 
                         col=c("red","orange","yellow","green","blue"),
                         cex.lab=1.5,
@@ -824,4 +825,6 @@ What the ANOVA results do not tell us is which among the 5 teams are different f
 
 ## Bibliography
 Pappalardo, Luca; Cintia, Paolo; Rossi, Alessio; Massucco, Emanuele; Ferragina, Paolo; Pedreschi, Dino; et al. (2019): Metadata record for: A public data set of spatio-temporal match events in soccer competitions. figshare. Dataset. https://doi.org/10.6084/m9.figshare.9711164.v2 
+  
+Nielson Sports (2018): World Football Report, 2018. www.nielsen.com/wp-content/uploads/sites/3/2019/04/world-football-report-2018.pdf
 

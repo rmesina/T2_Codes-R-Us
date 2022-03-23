@@ -111,6 +111,11 @@ goals_clean_x<-na.omit(goals_clean_x)
 goals_clean_y<-outlierKD2(goals, y.Start, rm=TRUE, boxplt = TRUE, histogram = TRUE, qqplt = TRUE)
 goals_clean_y<-na.omit(goals_clean_y)
 ```
+
+```{r, checking normality}
+
+```
+
 ```{r checking #modes of distributions}
 #assist/keypass length modes:
 assist_modes_length<-modetest(assists_clean$assist_dist)
