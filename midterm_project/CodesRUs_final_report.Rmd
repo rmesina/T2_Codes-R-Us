@@ -803,26 +803,24 @@ What the ANOVA results do not tell us is which among the 5 teams are different f
 
 ## Chapter 6: Conclusions
 
-1. Using t-tests to compare configurations between assists and key passes, and separately, goals and shots, the team found statistically significant differences in means of the following:
+Based on our results we can make several conclusions. First, Using t-tests to compare configurations between assists and key passes, and separately, goals and shots, the team found statistically significant differences in means of the following:  
 
-  a. Starting x-coordinate of assists vs key passes. In particular, this           result shows that, on average, final passes made further up the field are      more likely to result in an assist than a key pass.
-
-  b. Distance covered by assists vs key passes. In particular, this shows that      final passes that have to cover a shorter distance are more likely to         result in an assist.
+  1.  Starting x-coordinate of assists vs key passes. In particular, this result shows that, on average, final passes made further up the field are more likely to result in an assist than a key pass.  
+  2.  Distance covered by assists vs key passes. In particular, this shows that final passes that have to cover a shorter distance are more likely to result in an assist.  
+  3.  Starting x-coordinate of shots vs goals. In particular, we can conclude that attempts on goal taken further up the field are more likely to result in a goal.
   
-  c. Starting x-coordinate of shots vs goals. In particular, we can conclude      that attempts on goal taken further up the field are more likely to result     in a goal.
+Second, from the probability plots on the same variables of interest, we conclude the following:  
+
+  1.  Goal probability varies with respect to all but one of the variables, which is the start x-coordinate of the final pass.    
+  2.  Goal probability shows the greatest change as functions of final pass distance and shot x-coordinate. That is, the probability of a goal appears most sensitive to these two variables.   
+
+Third, using ANOVA to test for differences in strategies among 5 teams in the World Cup (Belgium, England, Croatia, Brazil, and France), the team found some statistically significant differences among these teams with respect to the following:  
+
+  1.  Starting x-coordinate of final passes  
+  2.  Starting x-coordinate of shots  
+  3.  ANOVA does not give information as to which pairs of teams are different from each other, but we can conclude that at least some of the 5 teams, when compared to others, have different strategies when it comes to their starting points for passes and shots.  
   
-2. From the probability plots on the same variables of interest, the team concludes the following:
-
-  a. First, goal probability varies with respect to all but one of the            variables, which is the start x-coordinate of the final pass.  
-  b. Second, goal probability shows the greatest change as functions of final       pass distance and shot x-coordinate. That is, the probability of a goal       appears most sensitive to these two variables. 
-
-3. Using ANOVA to test for differences in strategies among 5 teams in the World Cup (Belgium, England, Croatia, Brazil, and France), the team found some statistically significant differences among these teams with respect to the following:
-
-  a. Starting x-coordinate of final passes
-  b. Starting x-coordinate of shots
-  c. ANOVA does not give information as to which pairs of teams are different     from each other, but we can conclude that at least some of the 5 teams,       when compared to others, have different strategies when it comes to           their starting points for passes and shots.
-  
-4. [PLACEHOLDER FOR MODELLING CONCLUSIONS]
+4.[PLACEHOLDER FOR MODELLING CONCLUSIONS]
 
 ## Bibliography
 1) Pappalardo, Luca; Cintia, Paolo; Rossi, Alessio; Massucco, Emanuele; Ferragina, Paolo; Pedreschi, Dino; et al. (2019): Metadata record for: A public data set of spatio-temporal match events in soccer competitions. figshare. Dataset. https://doi.org/10.6084/m9.figshare.9711164.v2 
