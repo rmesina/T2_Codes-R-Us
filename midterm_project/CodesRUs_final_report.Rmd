@@ -683,7 +683,7 @@ From these plots we can make some conclusions about each variables role in deter
 ### SMART Question 2: How do these variables vary with different teams?
 Based on the t-test results, we now know that there is some evidence that there are differences between means of x & y coordinates and distance of key passes vs assists, and separately, x & y coordinates of shots and goals. An interesting follow-up question is whether or not teams build strategies around these variables and if so, do these strategies differ across teams? We can use boxplots to visualize and ANOVA to test for any differences.
 
-For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots + goals and assists + key passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. This makes sense as with the exception of Brazil these teams were all semifinalists, and Brazil still making it to the quarterfinals of the 2018 World cup.
+For now, our team demonstrates this extension of our analyses using World Cup data for 5 teams with the highest frequency of shots + goals and assists + key passes. These 5 teams are Belgium, England, Croatia, Brazil, and France. This makes sense as, with the exception of Brazil, these teams were all semifinalists, and Brazil still making it to the quarterfinals of the 2018 World cup.
 
 ![](./JPEGS/2018-Fifa-World-Cup-Knockout-Stage.png)  
 
@@ -800,4 +800,7 @@ What the ANOVA results do not tell us is which among the 5 teams are different f
 ## Chapter 5: Modelling Shot Success
 
 ## Chapter 6: Conclusions
+
+## Bibliography
+Pappalardo, Luca; Cintia, Paolo; Rossi, Alessio; Massucco, Emanuele; Ferragina, Paolo; Pedreschi, Dino; et al. (2019): Metadata record for: A public data set of spatio-temporal match events in soccer competitions. figshare. Dataset. https://doi.org/10.6084/m9.figshare.9711164.v2 
 
