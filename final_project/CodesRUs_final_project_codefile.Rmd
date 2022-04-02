@@ -1,0 +1,95 @@
+---
+title: "CodesRUs Final Report"
+authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
+date: "March 9, 2022"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+library(ggplot2)
+library(ggsoccer)
+library(ggpubr)
+library(dplyr)
+library(vtable)
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+```{r loading data}
+#Load Event data from each competition as a dataframe
+england<-data.frame(read.csv('./datasets/events_England_new.csv'))
+england$competition <- "England"
+
+italy<-data.frame(read.csv('./datasets/events_Italy_new.csv'))
+italy$competition <- "Italy"
+
+germany<-data.frame(read.csv('./datasets/events_Germany_new.csv'))
+germany$competition <- "Germany"
+
+france<-data.frame(read.csv('./datasets/events_France_new.csv'))
+france$competition <- "France"
+
+spain<-data.frame(read.csv('./datasets/events_Spain_new.csv'))
+spain$competition <- "Spain"
+
+european<-data.frame(read.csv('./datasets/events_European_Championship_new.csv'))
+european$competition <- "European"
+
+worldcup<-data.frame(read.csv('./datasets/events_World_Cup_new.csv'))
+worldcup$competition <- "World Cup"
+                     
+#Append dataframes into a single dataframe from which to draw.
+event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+
+#convert x and y coordinate columns from characters to integer values
+event_data$x.End <- as.numeric(event_data$x.End)
+event_data$y.End <- as.numeric(event_data$y.End)
+
+event_data$x.Start <- as.numeric(event_data$x.Start)
+event_data$y.Start <- as.numeric(event_data$y.Start)
+
+#convert event, subevent, tags, players, team labels, etc... to factors
+event_data$Event.Name=as.factor(event_data$Event.Name)
+event_data$Subevent.Name=as.factor(event_data$Subevent.Name)
+event_data$Match.Period=as.factor(event_data$Match.Period)
+event_data$Match.Date=as.factor(event_data$Match.Date)
+event_data$Player=as.factor(event_data$Player)
+event_data$Team.Name=as.factor(event_data$Team.Name)
+event_data$Tag.1=as.factor(event_data$Tag.1)
+event_data$Tag.2=as.factor(event_data$Tag.2)
+event_data$Tag.3=as.factor(event_data$Tag.3)
+event_data$Tag.4=as.factor(event_data$Tag.4)
+event_data$Tag.5=as.factor(event_data$Tag.5)
+event_data$Tag.6=as.factor(event_data$Tag.6)
+```
+
+```{r calculate distance}
+
+event_data<-event_data %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+
+event_data$dist <- as.numeric(event_data$dist)
+```
+
+```{r event datasets}
+#Collect shots, goals, assists, and key passes into their own dataframes
+shots<-subset(event_data, Event.Name=='Shot')
+shots<-subset(shots, Tag.1!='Goal')
+goals<-subset(event_data, Tag.1=='Goal')
+goals<-subset(goals, Event.Name!='Save attempt')
+assists<-subset(event_data, Tag.1=='Assist')
+key_passes<-subset(event_data, Tag.1=='Key pass')
+```
