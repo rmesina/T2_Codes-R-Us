@@ -168,24 +168,25 @@ for nation in nations:
                 tag_name_1=[]
                 if tag_id1==dict_tags2name.keys():
                     tag_name_1=dict_tags2name.values()
-                tag_name_1s.append(tag_name_1)
-#%%                
-# create dataframe
-df_event_data=pd.DataFrame(
-    {'Event ID':event_ids,
-     'Event Name': event_names,
-     'Subevent ID': subevent_ids,
-     'Subevent Name': subevent_names,
-     'Match Period': match_periods,
-     'Event Time': event_times,
-     'x Start': x_starts,
-     'y Start': y_starts,
-     'x End': x_ends,
-     'y End': y_ends,
-     'Player ID': player_ids,
-     'Team ID': team_ids,
-     'Match Id': match_ids,
-    })
-
+                tag_name_1s.append(tag_name_1)               
+    # create dataframe
+    df_event_data=pd.DataFrame(
+        {'Event ID':event_ids,
+         'Event Name': event_names,
+         'Subevent ID': subevent_ids,
+         'Subevent Name': subevent_names,
+         'Match Period': match_periods,
+         'Match ID': match_id,
+         'Event Time': event_times,
+         'x Start': x_starts,
+         'y Start': y_starts,
+         'x End': x_ends,
+         'y End': y_ends,
+         'Player ID': player_ids,
+         'Team ID': team_ids,
+         'Match Id': match_ids,
+         })
+    df_event=pd.read_json('./Data/events_%s.json' %nation)
+    df_event.to_csv('event_%s.csv' %nation)
 # write dataframe to excel file
 #df_event_data.to_csv('events_database.csv', index=False)
