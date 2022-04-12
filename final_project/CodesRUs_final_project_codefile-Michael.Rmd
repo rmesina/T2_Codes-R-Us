@@ -1,0 +1,293 @@
+---
+title: "CodesRUs Final Report"
+authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
+date: "March 9, 2022"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+library(ggplot2)
+library(ggsoccer)
+library(ggpubr)
+library(dplyr)
+library(vtable)
+library(purrr)
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+```{r loading data}
+#Load Event data from each competition as a dataframe
+england<-data.frame(read.csv('./datasets/match_id/event_England.csv'))
+england$competition <- "England"
+
+italy<-data.frame(read.csv('./datasets/match_id/event_Italy.csv'))
+italy$competition <- "Italy"
+
+germany<-data.frame(read.csv('./datasets/match_id/event_Germany.csv'))
+germany$competition <- "Germany"
+
+france<-data.frame(read.csv('./datasets/match_id/event_France.csv'))
+france$competition <- "France"
+
+spain<-data.frame(read.csv('./datasets/match_id/event_Spain.csv'))
+spain$competition <- "Spain"
+
+european<-data.frame(read.csv('./datasets/match_id/event_European_Championship.csv'))
+european$competition <- "European"
+
+worldcup<-data.frame(read.csv('./datasets/match_id/event_World_Cup.csv'))
+worldcup$competition <- "World Cup"
+                     
+#Append dataframes into a single dataframe from which to draw.
+event_data<-rbind(england, italy, germany, france, spain, european, worldcup)
+```
+
+```{r cleaning data}
+#convert x and y coordinate columns from characters to integer values
+event_data$x.End <- as.numeric(event_data$x.End)
+event_data$y.End <- as.numeric(event_data$y.End)
+
+event_data$x.Start <- as.numeric(event_data$x.Start)
+event_data$y.Start <- as.numeric(event_data$y.Start)
+
+#convert event, subevent, tags, players, team labels, etc... to factors
+event_data$Event.Name=as.factor(event_data$Event.Name)
+event_data$Subevent.Name=as.factor(event_data$Subevent.Name)
+event_data$Match.Period=as.factor(event_data$Match.Period)
+
+event_data$Player=as.factor(event_data$Player)
+event_data$Team=as.factor(event_data$Team)
+event_data$Tag.1=as.factor(event_data$Tag.1)
+event_data$Tag.2=as.factor(event_data$Tag.2)
+event_data$Tag.3=as.factor(event_data$Tag.3)
+event_data$Tag.4=as.factor(event_data$Tag.4)
+event_data$Tag.5=as.factor(event_data$Tag.5)
+event_data$Tag.6=as.factor(event_data$Tag.6)
+
+match_event_data<-event_data
+match_event_data$Team<-as.character(match_event_data$Team)
+```
+
+```{r calculate distance}
+
+event_data<-event_data %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
+
+event_data$dist <- as.numeric(event_data$dist)
+```
+
+```{r match summary function}
+match_ls<-match_event_data$Match.Id
+match_ls<-unique(match_ls)
+
+# Stat lists to put stats into
+match_ids<-list()
+team1s<-list()
+team2s<-list()
+team1_shots<-list()
+team1_shots_target<-list()
+team2_shots<-list()
+team2_shots_target<-list()
+team1_passes<-list()
+team1_pass_acc<-list()
+team2_passes<-list()
+team2_pass_acc<-list()
+team1_possession<-list()
+team2_possession<-list()
+team1_fouls<-list()
+team2_fouls<-list()
+team1_yellows<-list()
+team1_reds<-list()
+team2_yellows<-list()
+team2_reds<-list()
+team1_offsides<-list()
+team2_offsides<-list()
+team1_corners<-list()
+team2_corners<-list()
+```
+
+```{r for loop}
+# for loop to get match stats for each match
+for (match in match_ls) {
+  match_data<-subset(match_event_data, Match.Id==match)
+
+  match_time1<-subset(match_data, Match.Period=='1H')
+  match_time2<-subset(match_data, Match.Period=='2H')
+  
+  time1<-match_time1$Event.Time
+  time2<-match_time2$Event.Time
+  
+  time1<-prepend(time1, 0, before=1)
+  time2<-prepend(time2, 0, before = 1)
+  
+  time1_duration<-diff(time1, lag = 1)
+  time2_duration<-diff(time2, lag = 1)
+  
+  match_time1$Event.Duration<-time1_duration
+  match_time2$Event.Duration<-time2_duration
+  
+  match_data<-rbind(match_time1, match_time2)
+  
+  #Get event data for each team in match
+  teams<-match_data$Team
+  teams<-unique(teams)
+  team1=teams[1]
+  team2=teams[2]
+  team1_data<-subset(match_data, Team==team1)
+  team2_data<-subset(match_data, Team==team2)
+  
+  team1s<-append(team1s, team1)
+  team2s<-append(team2s, team2)
+  
+  match_ids<-append(match_ids, match)
+  
+  #Shots Data
+  team1_shot<-subset(team1_data, Event.Name=='Shot')
+  team1_shot_target<-subset(team1_shot, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  team2_shot<-subset(team2_data, Event.Name=='Shot')
+  team_2shot_target<-subset(team2_shot, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  shots1<-length(team1_shot$Event.Name)
+  shots2<-length(team2_shot$Event.Name)
+  
+  shot_target1<-length(team1_shot_target$Event.Name)
+  shot_target2<-length(team_2shot_target$Event.Name)
+  
+  team1_shots<-append(team1_shots, shots1)
+  team2_shots<-append(team2_shots, shots2)
+  team1_shots_target<-append(team1_shots_target, shot_target1)
+  team2_shots_target<-append(team2_shots_target, shot_target2)
+  
+  #Pass Data
+  
+  #Subset pass data
+  team1_pass<-subset(team1_data, Event.Name=='Pass')
+  team1_pass_target<-subset(team1_pass, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  team2_pass<-subset(team2_data, Event.Name=='Pass')
+  team2_pass_target<-subset(team2_pass, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  # Calculate Pass Stats
+  passes_target1<-length(team1_pass_target$Event.Name)
+  passes1<-length(team1_pass$Event.Name)
+  passes_target2<-length(team2_pass_target$Event.Name)
+  passes2<-length(team2_pass$Event.Name)
+  pass_acc1<-passes_target1/passes1*100
+  pass_acc2<-passes_target2/passes2*100
+  
+  # Add pass stat to lists
+  team1_passes<-append(team1_passes, passes_target1)
+  team2_passes<-append(team2_passes, passes_target2)
+  team1_pass_acc<-append(team1_pass_acc, pass_acc1)
+  team2_pass_acc<-append(team2_pass_acc, pass_acc2)
+  
+  # Corners
+  corners1<-length(which(team1_data$Subevent.Name=='Corner'))
+  corners2<-length(which(team2_data$Subevent.Name=='Corner'))
+  
+  team1_corners<-append(team1_corners, corners1)
+  team2_corners<-append(team2_corners, corners2)
+  
+  #Possession Data
+  team1_time<-sum(team1_data$Event.Duration)
+  team2_time<-sum(team2_data$Event.Duration)
+  match_time<-sum(match_data$Event.Duration)
+  
+  possession1<-team1_time/match_time*100
+  possession2<-team2_time/match_time*100
+  
+  team1_possession<-append(team1_possession, possession1)
+  team2_possession<-append(team2_possession, possession2)
+  
+  #Offside Data
+  offside1<-length(which(team1_data$Event.Name=='Offside'))
+  offside2<-length(which(team2_data$Event.Name=='Offside'))
+  
+  team1_offsides<-append(team1_offsides, offside1)
+  team2_offsides<-append(team2_offsides, offside2)
+  
+  #Fouls Data (fouls committed by each team)
+  fouls1<-length(which(team1_data$Event.Name=='Foul'))
+  fouls2<-length(which(team2_data$Event.Name=='Foul'))
+  
+  team1_fouls<-append(team1_fouls, fouls1)
+  team2_fouls<-append(team2_fouls, fouls2)
+  
+  #Card Data
+  team1_yellow1<-subset(team1_data, Tag.1=='Yellow card' | Tag.2=='Yellow card' | Tag.3=='Yellow card' | Tag.4=='Yellow card'| Tag.5=='Yellow   card' | Tag.6=='Yellow card')
+  
+  team1_yellow2<-subset(team1_data, Tag.1=='Second yellow card' | Tag.2=='Second yellow card' | Tag.3=='Second yellow card' | Tag.4=='Second   yellow card'| Tag.5=='Second yellow card' | Tag.6=='Second yellow card')
+  
+  team1_yellow<-rbind(team1_yellow1, team1_yellow2)
+    
+  team1_red<-subset(team1_data, Tag.1=='Red card' | Tag.2=='Red card' | Tag.3=='Red card' | Tag.4=='Red card'| Tag.5=='Red card' | Tag.6=='Red   card')
+    
+  team2_yellow1<-subset(team2_data, Tag.1=='Yellow card' | Tag.2=='Yellow card' | Tag.3=='Yellow card' | Tag.4=='Yellow card'| Tag.5=='Yellow   card' | Tag.6=='Yellow card')
+  
+  team2_yellow2<-subset(team2_data, Tag.1=='Second yellow card' | Tag.2=='Second yellow card' | Tag.3=='Second yellow card' | Tag.4=='Second   yellow card'| Tag.5=='Second yellow card' | Tag.6=='Second yellow card')
+  
+  team2_yellow<-rbind(team2_yellow1, team2_yellow2)
+    
+  team2_red<-subset(team2_data, Tag.1=='Red card' | Tag.2=='Red card' | Tag.3=='Red card' | Tag.4=='Red card'| Tag.5=='Red card' | Tag.6=='Red   card')
+  
+  # Calculate card stats
+  yellows1<-length(team1_yellow$Event.Name)
+  yellows2<-length(team2_yellow$Event.Name)
+  reds1<-length(team1_red$Event.Name)
+  reds2<-length(team2_red$Event.Name)
+  
+  # Append to list
+  team1_yellows<-append(team1_yellows, yellows1)
+  team2_yellows<-append(team2_yellows, yellows2)
+  team1_reds<-append(team1_reds, reds1)
+  team2_reds<-append(team2_reds, reds2)
+  }
+
+```
+
+```{r match summary dataframe}
+lists<-list(match.id=match_ids,
+            team1=team1s)
+match_sum_df<-as.data.frame(do.call(cbind, lists))
+match_sum_df$team2<-team2s
+match_sum_df$team1.shots<-team1_shots
+match_sum_df$team2.shots<-team2_shots
+match_sum_df$team1.shots.target<-team1_shots_target
+match_sum_df$team2.shots.target<-team2_shots_target
+match_sum_df$team1.passes<-team1_passes
+match_sum_df$team2.passes<-team2_passes
+match_sum_df$team1.pass.acc<-team1_pass_acc
+match_sum_df$team2.pass.acc<-team2_pass_acc
+match_sum_df$team1.possession<-team1_possession
+match_sum_df$team2.possession<-team2_possession
+match_sum_df$team1.corners<-team1_corners
+match_sum_df$team2.corners<-team2_corners
+match_sum_df$team1.offsides<-team1_offsides
+match_sum_df$team2.offsides<-team2_offsides
+match_sum_df$team1.fouls<-team1_fouls
+match_sum_df$team2.fouls<-team2_fouls
+match_sum_df$team1.yellows<-team1_yellows
+match_sum_df$team2.yellows<-team2_yellows
+match_sum_df$team1.reds<-team1_reds
+match_sum_df$team2.reds<-team2_reds
+```
+
+```{r write to csv}
+library(data.table)
+fwrite(match_sum_df, "C:\\Users\\dmmkm\\Documents\\GitHub\\T2\\final_project\\datasets\\match_summary.csv")
+```
