@@ -225,7 +225,7 @@ for (match in match_ls) {
   team2_possession<-append(team2_possession, possession2)
   
   #Offside Data
-  offside1<-length(which(team1_offside$Event.Name=='Offside'))
+  offside1<-length(which(team1_data$Event.Name=='Offside'))
   offside2<-length(which(team2_data$Event.Name=='Offside'))
   
   team1_offsides<-append(team1_offsides, offside1)
@@ -271,9 +271,9 @@ for (match in match_ls) {
 ```
 
 ```{r match summary dataframe}
-match_sum_df<-as.data.frame(match_ids)
-match_sum_df$match.ids<-match_ids
-match_sum_df$team1<-team1s
+lists<-list(match.id=match_ids,
+            team1=team1s)
+match_sum_df<-as.data.frame(do.call(cbind, lists))
 match_sum_df$team2<-team2s
 match_sum_df$team1.shots<-team1_shots
 match_sum_df$team2.shots<-team2_shots
