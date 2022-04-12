@@ -90,16 +90,6 @@ event_data<-event_data %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^
 event_data$dist <- as.numeric(event_data$dist)
 ```
 
-```{r event datasets}
-#Collect shots, goals, assists, and key passes into their own dataframes
-shots<-subset(event_data, Event.Name=='Shot')
-shots<-subset(shots, Tag.1!='Goal')
-goals<-subset(event_data, Tag.1=='Goal')
-goals<-subset(goals, Event.Name!='Save attempt')
-assists<-subset(event_data, Tag.1=='Assist')
-key_passes<-subset(event_data, Tag.1=='Key pass')
-```
-
 ```{r match summary function}
 match_ls<-match_event_data$Match.Id
 match_ls<-unique(match_ls)
@@ -295,4 +285,9 @@ match_sum_df$team1.yellows<-team1_yellows
 match_sum_df$team2.yellows<-team2_yellows
 match_sum_df$team1.reds<-team1_reds
 match_sum_df$team2.reds<-team2_reds
+```
+
+```{r write to csv}
+library(data.table)
+fwrite(match_sum_df, "C:\\Users\\dmmkm\\Documents\\GitHub\\T2\\final_project\\datasets\\match_summary.csv")
 ```
