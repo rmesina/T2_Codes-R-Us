@@ -41,7 +41,7 @@ In order to analyze a particular variable (e.g. # goals), we need to transform t
 
 But first, we need to ensure that the transformation will not cause us to lose valuable information about the other competing team. It makes sense to think that the winner's statistics should be looked at relative to the opponents statistics (in terms of percentages)
 
-```{r calculate totals}
+```{r calculate totals and percentages}
 
 match_summary$total.shots <- match_summary$team1.shots + match_summary$team2.shots
 
@@ -68,4 +68,6 @@ match_summary$total.reds <- match_summary$team1.reds + match_summary$team2.reds
 #Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
 
 team1 <- match_summary[['team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds']]
+
+team2 <- match_summary[['team2','team2.goals', 'team2.shots','team2.shots.target','team2.passes','team2.pass.acc','team2.possession','team2.corners','team2.offsides','team2.fouls','team2.yellows','team2.reds']]
 ```
