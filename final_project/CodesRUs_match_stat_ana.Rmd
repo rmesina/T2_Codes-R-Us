@@ -39,8 +39,26 @@ str(match_summary)
 
 In order to analyze a particular variable (e.g. # goals), we need to transform the dataset from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
 
-But first, we need to ensure that the transformation will not cause us to lose valuable information about the other competing team.
+But first, we need to ensure that the transformation will not cause us to lose valuable information about the other competing team. It makes sense to think that the winner's statistics should be looked at relative to the opponents statistics (in terms of percentages)
 
-```{r long to wide}
+```{r calculate totals}
+
+match_summary$total.shots <- match_summary$team1.shots + match_summary$team2.shots
+
+match_summary$total.shots.target <- match_summary$team1.shots.target + match_summary$team2.shots.target
+
+match_summary$total.passes <- match_summary$team1.passes + match_summary$team2.passes
+
+match_summary$total.pass.acc <- match_summary$team1.pass.acc + match_summary$team2.pass.acc
+
+match_summary$total.corners <- match_summary$team1.corners + match_summary$team2.corners
+
+match_summary$total.offsides <- match_summary$team1.offsides + match_summary$team2.offsides
+
+match_summary$total.fouls <- match_summary$team1.fouls + match_summary$team2.fouls
+
+match_summary$total.yellows <- match_summary$team1.yellows + match_summary$team2.yellows
+
+match_summary$total.reds <- match_summary$team1.reds + match_summary$team2.reds
 
 ```
