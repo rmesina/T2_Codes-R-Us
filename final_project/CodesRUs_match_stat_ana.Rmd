@@ -62,3 +62,10 @@ match_summary$total.yellows <- match_summary$team1.yellows + match_summary$team2
 match_summary$total.reds <- match_summary$team1.reds + match_summary$team2.reds
 
 ```
+
+```{r long to wide}
+
+#Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
+
+team1 <- match_summary[['team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds']]
+```
