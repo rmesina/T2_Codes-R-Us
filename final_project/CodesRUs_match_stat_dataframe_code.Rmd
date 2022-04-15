@@ -98,6 +98,8 @@ match_ls<-unique(match_ls)
 match_ids<-list()
 team1s<-list()
 team2s<-list()
+team1_goals<-list()
+team2_goals<-list()
 team1_shots<-list()
 team1_shots_target<-list()
 team2_shots<-list()
@@ -155,6 +157,7 @@ for (match in match_ls) {
   
   match_ids<-append(match_ids, match)
   
+  
   #Shots Data
   team1_shot<-subset(team1_data, Event.Name=='Shot')
   team1_shot_target<-subset(team1_shot, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
@@ -172,6 +175,18 @@ for (match in match_ls) {
   team2_shots<-append(team2_shots, shots2)
   team1_shots_target<-append(team1_shots_target, shot_target1)
   team2_shots_target<-append(team2_shots_target, shot_target2)
+  
+  
+  #Goals Data
+  team1_goal<-subset(team1_data, Event.Name=='Shot' & Tag.1=='Goal')
+  
+  team2_goal<-subset(team2_shot, Event.Name=='Shot' & Tag.1=='Goal')
+  
+  goal1<-length(team1_goal$Event.Name)
+  goal2<-length(team2_goal$Event.Name)
+  
+  team1_goals<-append(team1_goals, goal1)
+  team2_goals<-append(team2_goals, goal2)
   
   #Pass Data
   
@@ -265,6 +280,8 @@ lists<-list(match.id=match_ids,
             team1=team1s)
 match_sum_df<-as.data.frame(do.call(cbind, lists))
 match_sum_df$team2<-team2s
+match_sum_df$team1.goals<-team1_goals
+match_sum_df$team2.goals<-team2_goals
 match_sum_df$team1.shots<-team1_shots
 match_sum_df$team2.shots<-team2_shots
 match_sum_df$team1.shots.target<-team1_shots_target
