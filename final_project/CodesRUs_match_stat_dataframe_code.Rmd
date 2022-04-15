@@ -306,5 +306,5 @@ match_sum_df$team2.reds<-team2_reds
 
 ```{r write to csv}
 library(data.table)
-fwrite(match_sum_df, "C:\\Users\\dmmkm\\Documents\\GitHub\\T2\\final_project\\datasets\\match_summary.csv")
+fwrite(match_sum_df, "C:\\Users\\rmesina\\Documents\\GitHub\\T2_DATS6101\\final_project\\datasets\\match_summary.csv")
 ```
