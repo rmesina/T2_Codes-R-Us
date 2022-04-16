@@ -62,5 +62,19 @@ str(teams)
 
 ```
 
-The dataset teams now has 3,882 records that can be used to analyze number of goals and the factors that influence it. We will run various linear regression models and evaluate them against one another. 
+The dataset teams now has 3,882 records that can be used to analyze number of goals and the factors that influence it. We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared to compare models.
 
+```{r linear regressions}
+
+teams_cont <- subset(teams, select = -c(team))
+loadPkg("leaps")
+best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
+plot(best2, scale = "adjr2", main = "Adjusted R^2")
+
+# The best model
+adjr2_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + offsides + fouls + reds, data = teams_cont)
+summary(adjr2_model)
+library(car)
+vif(adjr2_model)
+
+```
