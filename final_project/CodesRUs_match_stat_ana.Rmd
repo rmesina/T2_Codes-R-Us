@@ -94,10 +94,8 @@ loadPkg("pls")
 loadPkg("mice")
 loadPkg("ISLR")
 
-pcr.fit=pcr(goals~.,data=teams,scale=TRUE,validation ="CV")
 pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
 
-summary(pcr.fit)
 summary(pcr.fit.cont)
 
 validationplot(pcr.fit.cont, val.type = "R2")
@@ -105,9 +103,12 @@ validationplot(pcr.fit.cont, val.type = "R2")
 ```
 
 ```{r test}
+teamsscaled.pc <- PCAxform( teams_cont[,2:9], z=TRUE ) # exclude goals column at index 1
+teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
+head(teamsscaled.pc)
 
-teams_cont_scaled = data.frame(scale(teams_cont))
-teams.pc.v3 = PCRxform(teams_cont_scaled,"goals",TRUE) 
-head(teams.pc.v3)
+fit_pc <- lm(goals~., data = teamsscaled.pc)
+ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
+summary(fit_pc)
 
 ```
