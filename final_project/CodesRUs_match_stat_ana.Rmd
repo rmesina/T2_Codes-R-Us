@@ -76,5 +76,18 @@ adjr2_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners
 summary(adjr2_model)
 library(car)
 vif(adjr2_model)
+```
+
+The best model for goals consists of shots, shots.target, pass.acc, possession, corners, offsides, fouls, and reds. This model, however, only has an adjusted R Squared value of 0.409. This indicates that there is some information being left out of the model that could explain variation in number of goals. The only other variables available are passes and yellows. However, those variables appear to be correlated with others already in the model (see below). 
+
+```{r correlation}
+library(corrplot)
+corr <- cor(teams_cont)
+corrplot(corr)
+```
+
+Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We do that using PCR.
+
+```{r PCR}
 
 ```
