@@ -86,8 +86,28 @@ corr <- cor(teams_cont)
 corrplot(corr)
 ```
 
-Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We do that using PCR.
+Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCR.
 
 ```{r PCR}
+
+loadPkg("pls")
+loadPkg("mice")
+loadPkg("ISLR")
+
+pcr.fit=pcr(goals~.,data=teams,scale=TRUE,validation ="CV")
+pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
+
+summary(pcr.fit)
+summary(pcr.fit.cont)
+
+validationplot(pcr.fit.cont, val.type = "R2")
+
+```
+
+```{r test}
+
+teams_cont_scaled = data.frame(scale(teams_cont))
+teams.pc.v3 = PCRxform(teams_cont_scaled,"goals",TRUE) 
+head(teams.pc.v3)
 
 ```
