@@ -1,0 +1,103 @@
+---
+title: "CodesRUs-michael"
+authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
+date: "March 9, 2022"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+library(ggplot2)
+library(ggsoccer)
+library(ggpubr)
+library(dplyr)
+library(vtable)
+library(purrr)
+library(MASS)
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+```{r read csv}
+match_summary <- data.frame(read.csv('./datasets/match_summary.csv'))
+xkabledplyhead(match_summary)
+```
+
+In order to analyze a particular variable (e.g. # goals), we need to transform the dataset from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
+
+```{r long to wide}
+
+#Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
+
+team1 <- match_summary[c('team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds')]
+
+str(team1)
+
+colnames(team1) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
+
+team2 <- match_summary[c('team2','team2.goals', 'team2.shots','team2.shots.target','team2.passes','team2.pass.acc','team2.possession','team2.corners','team2.offsides','team2.fouls','team2.yellows','team2.reds')]
+
+str(team2)
+
+colnames(team2) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
+
+teams <- rbind(team1, team2)
+
+```
+
+The dataset teams now has 3,882 records that can be used to analyze number of goals and the factors that influence it. We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared to compare models.
+
+```{r linear regressions}
+
+teams_cont <- subset(teams, select = -c(team))
+loadPkg("leaps")
+best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
+plot(best2, scale = "adjr2", main = "Adjusted R^2")
+
+# The best model
+adjr2_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + offsides + fouls + reds, data = teams_cont)
+summary(adjr2_model)
+library(car)
+vif(adjr2_model)
+```
+
+The best model for goals consists of shots, shots.target, pass.acc, possession, corners, offsides, fouls, and reds. This model, however, only has an adjusted R Squared value of 0.409. This indicates that there is some information being left out of the model that could explain variation in number of goals. The only other variables available are passes and yellows. However, those variables appear to be correlated with others already in the model (see below). 
+
+```{r correlation}
+library(corrplot)
+corr <- cor(teams_cont)
+corrplot(corr)
+```
+
+```{r Making training and testing datasets}
+# Make training and test data sets
+set.seed(1)
+row.number<-sample(1:nrow(teams), 0.8*nrow(teams))
+teams_train<-teams[row.number,]
+teams_test<-teams[-row.number,]
+
+# Train model
+model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners + offsides + fouls + reds, data=teams_train)
+summary(model_goals)
+plot(model_goals)
+
+# Predict
+pred_goals<-predict(model_goals, newdata=teams_test)
+rmse <- sqrt(sum((exp(pred_goals) - teams_test$goals)^2)/length(teams_test$goals))
+c(RMSE = rmse, R2=summary(model_goals)$r.squared)
+
+plot(teams_test$goals, pred_goals)
+```
