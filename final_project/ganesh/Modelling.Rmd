@@ -1,0 +1,20 @@
+---
+title: "CodesRUs Final Report"
+authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
+date: "March 9, 2022"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+
+# read data
+```{r}
+print(getwd())
+data1 <- read.csv("team1info.csv", header=TRUE, stringsAsFactors=FALSE)
+head(data1)
