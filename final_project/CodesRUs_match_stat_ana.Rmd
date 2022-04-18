@@ -37,7 +37,7 @@ head(match_summary)
 str(match_summary)
 ```
 
-In order to analyze a particular variable (e.g. # goals), we need to transform the dataset from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
+In order to analyze a particular variable (e.g. # goals), we need to transform the dataset from wide to long. This way, each match-team combination will have a corresponding # goals value stored in the same column.
 
 
 ```{r long to wide}
@@ -62,7 +62,7 @@ str(teams)
 
 ```
 
-The dataset teams now has 3,882 records that can be used to analyze number of goals and the factors that influence it. We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared to compare models.
+The dataset teams now has 3,882 records that can be used to analyze number of goals and the factors that influence it. We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared and BIC to compare models.
 
 ```{r linear regressions}
 
