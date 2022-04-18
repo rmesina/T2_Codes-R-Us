@@ -101,3 +101,30 @@ c(RMSE = rmse, R2=summary(model_goals)$r.squared)
 
 plot(teams_test$goals, pred_goals)
 ```
+
+```{r cross validation}
+library(caret)
+set.seed(2)
+train_control <- trainControl(method = "repeatedcv",
+                            number = 10, repeats = 3)
+model <- train(goals ~., data = teams_cont,
+               method = "lm",
+               trControl = train_control)
+pred<-predict(model, newdata = teams_test)
+plot(teams_test$goals, pred)
+```
+
+```{r multinomial logistic regression}
+library(caret)
+require(nnet)
+teams_logit<-teams
+teams_logit$goals<-as.factor(teams_logit$goals)
+index<-createDataPartition(teams_logit$goals, p=0.7, list=FALSE)
+train<-teams_logit[index,]
+test<-teams_logit[-index,]
+train$goals<-relevel(train$goals, ref='0')
+multinomial_model<-multinom(goals ~ ., data=teams_logit, MaxNWts=100000)
+summary(multinomial_model)
+test$goalsPredicted<-predict(multinomial_model, newdata = test, "goals")
+tab<-table(test$goals, test$)
+```
