@@ -91,8 +91,7 @@ corrplot(a, type = "upper")
 Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCA/PCR.
 
 ```{r PCA}
-teams_cont_x <- subset(teams_cont, select = -c(goals))
-teams_cont_scaled <- data.frame(scale(teams_cont_x))
+teams_cont_scaled <- data.frame(scale(teams_cont))
 
 teams_pca <- prcomp(teams_cont_scaled)
 xkabledply(teams_pca)
@@ -114,7 +113,7 @@ validationplot(pcr.fit.cont, val.type = "R2")
 ```
 
 ```{r test}
-teamsscaled.pc <- PCAxform( teams_cont[,2:9], z=TRUE ) # exclude goals column at index 1
+teamsscaled.pc <- PCAxform( teams_cont[,2:11], z=TRUE ) # exclude goals column at index 1
 teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
 head(teamsscaled.pc)
 
@@ -122,8 +121,8 @@ fit_pc <- lm(goals~., data = teamsscaled.pc)
 ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
 summary(fit_pc)
 
-fit_pc <- lm(goals~., data = teamsscaled.pc)
-ezids::xkabledply(fit_pc, title = "Limited model using Principal Comps")
-summary(fit_pc)
+fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
+ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
+summary(fit_pc_lim)
 
 ```
