@@ -85,7 +85,7 @@ The best model for goals, under both adjusted R squared and BIC methods, consist
 #install.packages("corrplot")
 library("corrplot")
 a <- cor(teams_cont)
-corrplot(a, type = "upper")
+corrplot(a, type = 'upper')
 ```
 
 Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCA/PCR.
