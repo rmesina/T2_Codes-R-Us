@@ -111,20 +111,38 @@ model <- train(goals ~., data = teams_cont,
                method = "lm",
                trControl = train_control)
 pred<-predict(model, newdata = teams_test)
+rmse <- sqrt(sum((exp(pred_goals) - teams_test$goals)^2)/length(teams_test$goals))
+c(RMSE = rmse, R2=summary(model_goals)$r.squared)
 plot(teams_test$goals, pred)
 ```
 
 ```{r multinomial logistic regression}
 library(caret)
 require(nnet)
+
+# create separate data set from linear model
 teams_logit<-teams
+
+# Convert goals to factor type variable
 teams_logit$goals<-as.factor(teams_logit$goals)
+
+# Create training and test data sets
 index<-createDataPartition(teams_logit$goals, p=0.7, list=FALSE)
 train<-teams_logit[index,]
 test<-teams_logit[-index,]
+
+# Train model
 train$goals<-relevel(train$goals, ref='0')
-multinomial_model<-multinom(goals ~ ., data=teams_logit, MaxNWts=100000)
+multinomial_model.fit<-multinom(goals ~ ., data=train, MaxNWts=100000)
+
+# Test model
 test$goalsPredicted<-predict(multinomial_model, newdata = test, "class")
+
+# Results
 tab<-table(test$goals, test$goalsPredicted)
 tab
+
+round((sum(diag(tab))/sum(tab))*100,2)
+
+
 ```
