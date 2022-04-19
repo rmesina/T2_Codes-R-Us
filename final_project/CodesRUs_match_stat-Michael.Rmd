@@ -227,10 +227,13 @@ winner_model<-glm(winner ~ ., data=match_train, family='binomial')
 
 # Test
 pred<-predict(winner_model, newdata = match_test, type='response')
-match_test$prob=pred
+match_test$pred=pred
 
 # Confusion Matrix
-xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
+conf_matrix<-xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
+conf_matrix
+accuracy=(567+562)/1552
+recall=(214+562)/776
 
 # Calculate ROC and AUC
 h <- roc(winner~prob, data=match_diff)
