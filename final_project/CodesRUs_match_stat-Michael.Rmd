@@ -133,16 +133,16 @@ test<-teams_logit[-index,]
 
 # Train model
 train$goals<-relevel(train$goals, ref='0')
-multinomial_model.fit<-multinom(goals ~ ., data=train, MaxNWts=100000)
+multinomial_model<-multinom(goals ~ ., data=train, MaxNWts=100000)
 
 # Test model
-test$goalsPredicted<-predict(multinomial_model, newdata = test, "class")
+#test$goalsPredicted<-predict(multinomial_model, newdata = test, "class")
 
 # Results
-tab<-table(test$goals, test$goalsPredicted)
-tab
+#tab<-table(test$goals, test$goalsPredicted)
+#tab
 
-round((sum(diag(tab))/sum(tab))*100,2)
+#round((sum(diag(tab))/sum(tab))*100,2)
 ```
 
 ```{r simplifying match summary}
@@ -212,7 +212,7 @@ prob=predict(winner_model2, type = "response" )
 match_diff$prob=prob
 h <- roc(winner~prob, data=match_diff)
 auc(h)
-plot(h)
+plot(h, main='ROC Curve')
 ```
 
 ```{r train and test}
