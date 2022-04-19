@@ -82,10 +82,10 @@ vif(adjr2_bic_model)
 The best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals. The only other variables available are passes, offsides, reds, and yellows. However, at least some of those variables appear to be correlated with others already in the model (see below). 
 
 ```{r correlation}
-library(corrplot)
-corr <- cor(teams_cont)
-corr
-corrplot.mixed(corr)
+#install.packages("corrplot")
+library("corrplot")
+a <- cor(teams_cont)
+corrplot(a, type = "upper")
 ```
 
 Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCR.
