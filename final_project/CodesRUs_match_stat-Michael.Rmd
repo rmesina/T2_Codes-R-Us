@@ -143,6 +143,44 @@ tab<-table(test$goals, test$goalsPredicted)
 tab
 
 round((sum(diag(tab))/sum(tab))*100,2)
+```
 
+```{r simplifying match summary}
+winner<-match_summary$winner
+shot_ratio<-match_summary$team1.shots-match_summary$team2.shots
+shot_ratio<-round(shot_ratio, digits=2)
+shot_target_ratio<-match_summary$team1.shots.target-match_summary$team2.shots.target
+shot_target_ratio<-round(shot_target_ratio, digits=2)
+pass_ratio<-match_summary$team1.passes-match_summary$team2.passes
+pass_ratio<-round(pass_ratio, digits=2)
+pass_acc_ratio<-match_summary$team1.pass.acc-match_summary$team2.passes.acc
+pass_acc_ratio<-round(pass_acc_ratio, digits=2)
+possession_ratio<-match_summary$team1.possession-match_summary$team2.possession
+possession_ratio<-round(possession_ratio, digits=2)
+corners_ratio<-match_summary$team1.corners-match_summary$team2.corners
+corners_ratio<-round(corners_ratio, digits=2)
+offside_ratio<-match_summary$team1.offsides-match_summary$team2.offsides
+offside_ratio<-round(offside_ratio, digits=2)
+foul_ratio<-match_summary$team1.fouls-match_summary$team2.fouls
+foul_ratio<-round(foul_ratio, digits=2)
+yellow_ratio<-match_summary$team1.yellows-match_summary$team2.yellows
+yellow_ratio<-round(yellow_ratio, digits=2)
+red_ratio<-match_summary$team1.reds-match_summary$team2.reds
+red_ratio<-round(red_ratio, digits=2)
+lists<-list(winner=winner,
+            shot.ratio=shot_ratio,
+            shot.ratio.target=shot_target_ratio,
+            pass.ratio=pass_ratio,
+            pass.acc.ratio=pass_acc_ratio,
+            possessio.ratio=possession_ratio,
+            corners.ratio=corners_ratio,
+            offside.ratio=offside_ratio,
+            foul.ratio=foul_ratio,
+            yellow.ratio=yellow_ratio,
+            red.ratio=red_ratio)
+match_diff<-as.data.frame(do.call(cbind, (lists)))
+```
+
+```{r logistical regression using match_diff}
 
 ```

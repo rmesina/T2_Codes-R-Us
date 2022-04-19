@@ -98,6 +98,7 @@ match_ls<-unique(match_ls)
 match_ids<-list()
 team1s<-list()
 team2s<-list()
+winners<-list()
 team1_goals<-list()
 team2_goals<-list()
 team1_shots<-list()
@@ -188,6 +189,14 @@ for (match in match_ls) {
   team1_goals<-append(team1_goals, goal1)
   team2_goals<-append(team2_goals, goal2)
   
+  # Determine winner
+  if (goal1 > goal2) {
+    winner<-'team1'}
+  
+  if (goal2 > goal1) {
+    winner<-'team2'}
+  
+  winners<-append(winners, winner)
   #Pass Data
   
   #Subset pass data
@@ -280,6 +289,7 @@ lists<-list(match.id=match_ids,
             team1=team1s)
 match_sum_df<-as.data.frame(do.call(cbind, lists))
 match_sum_df$team2<-team2s
+match_sum_df$winner<-winners
 match_sum_df$team1.goals<-team1_goals
 match_sum_df$team2.goals<-team2_goals
 match_sum_df$team1.shots<-team1_shots
@@ -306,5 +316,6 @@ match_sum_df$team2.reds<-team2_reds
 
 ```{r write to csv}
 library(data.table)
-fwrite(match_sum_df, "C:\\Users\\rmesina\\Documents\\GitHub\\T2_DATS6101\\final_project\\datasets\\match_summary.csv")
+fwrite(match_sum_df,'C:\\Users\\dmmkm\\desktop\\match_summary.csv')
+#fwrite(match_sum_df, "C:\\Users\\rmesina\\Documents\\GitHub\\T2_DATS6101\\final_project\\datasets\\match_summary.csv")
 ```
