@@ -83,6 +83,16 @@ vif(model4)
 vif(model5)
 vif(model6)
 
+summary3 <- summary(model3)
+summary4 <- summary(model4)
+summary5 <- summary(model5)
+summary6 <- summary(model6)
+
+with(summary3, 1 - deviance/null.deviance) #McFadden's R^2
+with(summary4, 1 - deviance/null.deviance)
+with(summary5, 1 - deviance/null.deviance)
+with(summary6, 1 - deviance/null.deviance)
+
 # model6 has a high BIC, but it doesn't show multicollinearity (vif < 2). Thus, 
 # this is the model I will use.
 
@@ -94,6 +104,18 @@ summary(merge_model2$probability) #Values here make sense
 model6b <- glm(probability ~ Distance + x_start*y_start , data = merge_model2)
 summary(model6b)
 vif(model6b)
+with(summary(model6b), 1 - deviance/null.deviance)
+BIC(model6b)
 
+#TESTING THE NEW MODEL
+datatest_model6b <- select(merge_model2, one_of(c("Distance", "x_start", "y_start")))
+merge_model2$probability_test <- predict(model6b, datatest_model6b)
+
+ggplot(data = merge_model2, aes(probability_test - probability))+
+         geom_histogram(bins = 10, binwidth = 0.005)+
+  coord_cartesian(xlim = c(-0.2, 0.2))+
+  labs(title = "Histogram. Error of estimates form Model 6b", 
+       subtitle = "Probability estimate - Probability from Logit", 
+       x = "Errors", y = "Frequency")
 
 
