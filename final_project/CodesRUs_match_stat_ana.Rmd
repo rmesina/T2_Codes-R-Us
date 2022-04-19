@@ -88,7 +88,16 @@ a <- cor(teams_cont)
 corrplot(a, type = "upper")
 ```
 
-Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCR.
+Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCA/PCR.
+
+```{r PCA}
+teams_cont_x <- subset(teams_cont, select = -c(goals))
+teams_cont_scaled <- data.frame(scale(teams_cont_x))
+
+teams_pca <- prcomp(teams_cont_scaled)
+xkabledply(teams_pca)
+
+```
 
 ```{r PCR}
 
@@ -111,6 +120,10 @@ head(teamsscaled.pc)
 
 fit_pc <- lm(goals~., data = teamsscaled.pc)
 ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
+summary(fit_pc)
+
+fit_pc <- lm(goals~., data = teamsscaled.pc)
+ezids::xkabledply(fit_pc, title = "Limited model using Principal Comps")
 summary(fit_pc)
 
 ```
