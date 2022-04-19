@@ -82,13 +82,21 @@ vif(adjr2_bic_model)
 The best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals. The only other variables available are passes, offsides, reds, and yellows. However, at least some of those variables appear to be correlated with others already in the model (see below). 
 
 ```{r correlation}
-library(corrplot)
-corr <- cor(teams_cont)
-corr
-corrplot.mixed(corr)
+#install.packages("corrplot")
+library("corrplot")
+a <- cor(teams_cont)
+corrplot(a, type = 'upper')
 ```
 
-Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCR.
+Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCA/PCR.
+
+```{r PCA}
+teams_cont_scaled <- data.frame(scale(teams_cont))
+
+teams_pca <- prcomp(teams_cont_scaled)
+xkabledply(teams_pca)
+
+```
 
 ```{r PCR}
 
@@ -105,12 +113,16 @@ validationplot(pcr.fit.cont, val.type = "R2")
 ```
 
 ```{r test}
-teamsscaled.pc <- PCAxform( teams_cont[,2:9], z=TRUE ) # exclude goals column at index 1
+teamsscaled.pc <- PCAxform( teams_cont[,2:11], z=TRUE ) # exclude goals column at index 1
 teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
 head(teamsscaled.pc)
 
 fit_pc <- lm(goals~., data = teamsscaled.pc)
 ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
 summary(fit_pc)
+
+fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
+ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
+summary(fit_pc_lim)
 
 ```
