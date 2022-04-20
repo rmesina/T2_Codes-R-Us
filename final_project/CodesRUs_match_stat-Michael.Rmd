@@ -90,16 +90,17 @@ teams_train<-teams[row.number,]
 teams_test<-teams[-row.number,]
 
 # Train model
-model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners + offsides + fouls + reds, data=teams_train)
+model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data=teams_train)
 summary(model_goals)
 plot(model_goals)
 
 # Predict
-pred_goals<-predict(model_goals, newdata=teams_test)
+teams_test$pred_goals<-predict(model_goals, newdata=teams_test)
 rmse <- sqrt(sum((exp(pred_goals) - teams_test$goals)^2)/length(teams_test$goals))
 c(RMSE = rmse, R2=summary(model_goals)$r.squared)
 
-plot(teams_test$goals, pred_goals)
+plot(teams_test$goals, pred_goals, xlab='Expected Goals', ylab='Predicted Goals', main='Results of Testing', ylim = c(-0.5,7), xlim=c(-0.5,7))
+abline(lm(pred_goals~goals,data=teams_test),col='red')
 ```
 
 ```{r cross validation}
