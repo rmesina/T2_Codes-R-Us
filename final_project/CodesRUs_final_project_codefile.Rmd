@@ -22,8 +22,16 @@ library(ggpubr)
 library(dplyr)
 library(vtable)
 library(purrr)
+library(pROC)
+library(regclass)
+library(car)
+library(corrplot)
+library(pls)
+library(mice)
+library(ISLR)
+library(leaps)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
 # options(scipen=9, digits = 3) 
 # ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
@@ -561,6 +569,7 @@ assist_dist
 
 
 ## SMART Question 2: Predicting Match Winner
+In order to predict the match winner based on the match summary variables, we decided to first reduce the number of variables taking the difference between a certain stat for the two teams. This halved the number of variables to look at. This resulted in the data frame in table 3, where a positive value is in favor of team 1 while a negative value favors team 2. Ratios were not used because many of the values in some of the variables have a zero value, so taking the ratio often resulted in not useful values.
 
 ```{r simplifying match summary}
 match_summary <- data.frame(read.csv('./datasets/match_summary.csv'))
@@ -599,49 +608,166 @@ lists<-list(winner=winner,
             red.dif=red_ratio)
 match_diff<-as.data.frame(do.call(cbind, (lists)))
 match_diff$winner<-as.factor(match_diff$winner)
-match_diff$shot.ratio<-as.numeric(match_diff$shot.dif)
-match_diff$shot.ratio.target<-as.numeric(match_diff$shot.target.dif)
-match_diff$pass.ratio<-as.numeric(match_diff$pass.dif)
-match_diff$pass.acc.ratio<-as.numeric(match_diff$pass.acc.dif)
-match_diff$possession.ratio<-as.numeric(match_diff$possession.dif)
-match_diff$corners.ratio<-as.numeric(match_diff$corners.dif)
-match_diff$offside.ratio<-as.numeric(match_diff$offside.dif)
-match_diff$foul.ratio<-as.numeric(match_diff$foul.dif)
-match_diff$yellow.ratio<-as.numeric(match_diff$yellow.dif)
-match_diff$red.ratio<-as.numeric(match_diff$red.dif)
+match_diff$shot.dif<-as.numeric(match_diff$shot.dif)
+match_diff$shot.target.dif<-as.numeric(match_diff$shot.target.dif)
+match_diff$pass.dif<-as.numeric(match_diff$pass.dif)
+match_diff$pass.acc.dif<-as.numeric(match_diff$pass.acc.dif)
+match_diff$possession.dif<-as.numeric(match_diff$possession.dif)
+match_diff$corners.dif<-as.numeric(match_diff$corners.dif)
+match_diff$offside.dif<-as.numeric(match_diff$offside.dif)
+match_diff$foul.dif<-as.numeric(match_diff$foul.dif)
+match_diff$yellow.dif<-as.numeric(match_diff$yellow.dif)
+match_diff$red.dif<-as.numeric(match_diff$red.dif)
 xkabledplyhead(match_diff)
 ```
 **Table 3.** First five rows of match_difference data frame. 
 
-```{r logistical regression using match_diff}
+In the first model all variables in the match_difference data frame were used. Looking at the summary of the model, only 5 out of the 11 variables were found to have any significance (shot.dif, shot.target.dif, pass.acc.dif, corners.dif, and red.dif).
+```{r logistical regression model 1}
 library(bestglm)
 winner_model<-glm(winner ~ ., data=match_diff, family='binomial')
 summary(winner_model)
-xkabledply(winner_model, title = paste("Logistic Regression :", format(formula(winner_model)) ))
+```
+
+In model 2 only the variables found to be significant were included.
+```{r logistical regression model 2}
 winner_model2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif, data = match_diff, family='binomial')
 summary(winner_model2)
 ```
+Comparing model 1 and model 2 AIC values, they are found to be the same. Therefore, we decided to train and test model 2 as it has fewer variables but performs just as well as model 1.
+
+To train model 2, we created train and test data sets in 20-80 split of the match-diff data frame.
+```{r train and test}
+# Make training and test data sets
+set.seed(1)
+row.number<-sample(1:nrow(match_diff), 0.8*nrow(match_diff))
+match_train<-match_diff[row.number,]
+match_test<-match_diff[-row.number,]
+
+## Train
+winner_model2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif + red.dif, data=match_train, family='binomial')
+
+## Test
+pred<-predict(winner_model2, newdata = match_test, type='response')
+match_test$pred=pred
+```
+
+Next, we analyzed the test results of model 2 by first making a confusion matrix, from which we could calculate the accuracy, which is 73%.
+```{r model 2 confusion matrix}
+## Confusion Matrix
+conf_matrix<-xkabledply(confusion_matrix(winner_model2), title = "Confusion matrix from Logit Model" )
+conf_matrix
+accuracy=(567+562)/1552
+recall=(214+562)/776
+```
+**Table 4.** Confusion matrix of test results for winner_model2.
+
+We finished by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804.
+```{r ROC plot and AUC}
+## Calculate ROC and AUC
+h <- roc(winner~pred, data=match_test)
+#auc(h)
+plot(h)
+```
+**Figure 3.** ROC plot showing test results of winner_model2.
 
 ## SMART Question 3: Predicting Number of Goals Scored
-In order to analyze a particular variable (e.g. # goals), we need to transform the dataset from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
+In order to analyze the goals variable, we need to transform the data set from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
 
 ```{r long to wide}
-
 #Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
 
 team1 <- match_summary[c('team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds')]
-
-str(team1)
 
 colnames(team1) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
 
 team2 <- match_summary[c('team2','team2.goals', 'team2.shots','team2.shots.target','team2.passes','team2.pass.acc','team2.possession','team2.corners','team2.offsides','team2.fouls','team2.yellows','team2.reds')]
 
-str(team2)
-
 colnames(team2) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
 
 teams <- rbind(team1, team2)
-
+teams_cont <- subset(teams, select = -c(team))
 ```
 
+The data set, teams, now has 3,882 records that can be used to analyze number of goals and the factors that influence it. To get an idea of correlations between the variables we can look at a correlation plot.
+
+```{r correlation}
+#install.packages("corrplot")
+corr <- cor(teams_cont)
+corrplot.mixed(corr)
+```
+**Figure**
+
+We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared to compare models.
+
+```{r linear regressions}
+best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
+plot(best2, scale = "adjr2", main = "Adjusted R^2")
+plot(best2, scale = "bic", main = "BIC")
+
+# The best model
+adjr2_bic_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data = teams_cont)
+
+summary(adjr2_bic_model)
+
+vif(adjr2_bic_model)
+```
+
+The best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals.
+
+
+```{r Making training and testing datasets}
+# Make training and test data sets
+set.seed(1)
+row.number<-sample(1:nrow(teams), 0.8*nrow(teams))
+teams_train<-teams[row.number,]
+teams_test<-teams[-row.number,]
+
+# Train model
+model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data=teams_train)
+summary(model_goals)
+plot(model_goals)
+```
+**Figure**
+
+```{r test linear regression model}
+# Test model
+teams_test$pred_goals<-predict(model_goals, newdata=teams_test)
+rmse <- sqrt(sum((exp(teams_test$pred_goals) - teams_test$goals)^2)/length(teams_test$goals))
+c(RMSE = rmse, R2=summary(model_goals)$r.squared)
+
+plot(teams_test$goals, teams_test$pred_goals, xlab='Expected Goals', ylab='Predicted Goals', main='Results of Testing', ylim = c(-0.5,7), xlim=c(-0.5,7))
+abline(lm(pred_goals~goals,data=teams_test),col='red')
+```
+**Figure**
+
+Now we want to see whether we can incorporate these variables without worrying about multicollinearity, as well as find any trends or relations previously hidden from us. We may be able to do that using PCA/PCR.
+
+```{r PCA}
+teams_cont_scaled <- data.frame(scale(teams_cont))
+
+teams_pca <- prcomp(teams_cont_scaled)
+xkabledply(teams_pca)
+```
+
+```{r PCR}
+pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
+
+summary(pcr.fit.cont)
+
+validationplot(pcr.fit.cont, val.type = "R2")
+```
+
+```{r test}
+teamsscaled.pc <- PCAxform( teams_cont[,2:11], z=TRUE ) # exclude goals column at index 1
+teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
+head(teamsscaled.pc)
+
+fit_pc <- lm(goals~., data = teamsscaled.pc)
+ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
+summary(fit_pc)
+
+fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
+ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
+summary(fit_pc_lim)
+```

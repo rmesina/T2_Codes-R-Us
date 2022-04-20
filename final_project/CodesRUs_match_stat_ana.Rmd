@@ -88,14 +88,13 @@ a <- cor(teams_cont)
 corrplot(a, type = 'upper')
 ```
 
-Now we want to see whether we can incorporate these variables without worrying about multicollinearity. We may be able to do that using PCA/PCR.
+Now we want to see whether we can incorporate these variables without worrying about multicollinearity, as well as find any trends or relations previously hidden from us. We may be able to do that using PCA/PCR.
 
 ```{r PCA}
 teams_cont_scaled <- data.frame(scale(teams_cont))
 
 teams_pca <- prcomp(teams_cont_scaled)
 xkabledply(teams_pca)
-
 ```
 
 ```{r PCR}

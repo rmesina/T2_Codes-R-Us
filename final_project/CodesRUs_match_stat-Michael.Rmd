@@ -207,41 +207,41 @@ xkabledplyhead(match_diff)
 ```
 
 ```{r confusion matrix}
-#loadPkg("regclass")
-#xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
+loadPkg("regclass")
+xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
 ```
 
 ```{r ROC and AUC}
-#loadPkg("pROC")
-#prob=predict(winner_model2, type = "response" )
-#match_diff$prob=prob
-#h <- roc(winner~prob, data=match_diff)
-#auc(h)
-#plot(h, main='ROC Curve')
+loadPkg("pROC")
+prob=predict(winner_model2, type = "response" )
+match_diff$prob=prob
+h <- roc(winner~prob, data=match_diff)
+auc(h)
+plot(h, main='ROC Curve')
 ```
 
 ```{r train and test}
 # Make training and test data sets
-#set.seed(1)
-#row.number<-sample(1:nrow(match_diff), 0.8*nrow(match_diff))
-#match_train<-match_diff[row.number,]
-#match_test<-match_diff[-row.number,]
-#
+set.seed(1)
+row.number<-sample(1:nrow(match_diff), 0.8*nrow(match_diff))
+match_train<-match_diff[row.number,]
+match_test<-match_diff[-row.number,]
+
 ## Train
-#winner_model<-glm(winner ~ ., data=match_train, family='binomial')
-#
+winner_model<-glm(winner ~ ., data=match_train, family='binomial')
+
 ## Test
-#pred<-predict(winner_model, newdata = match_test, type='response')
-#match_test$pred=pred
-#
+pred<-predict(winner_model, newdata = match_test, type='response')
+match_test$pred=pred
+
 ## Confusion Matrix
-#conf_matrix<-xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
-#conf_matrix
-#accuracy=(567+562)/1552
-#recall=(214+562)/776
-#
+conf_matrix<-xkabledply(confusion_matrix(winner_model2), title = "Confusion matrix from Logit Model" )
+conf_matrix
+accuracy=(567+562)/1552
+recall=(214+562)/776
+
 ## Calculate ROC and AUC
-#h <- roc(winner~prob, data=match_diff)
-#auc(h)
-#plot(h)
+h <- roc(winner~prob, data=match_diff)
+auc(h)
+plot(h)
 ```
