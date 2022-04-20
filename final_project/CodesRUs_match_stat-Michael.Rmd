@@ -168,79 +168,79 @@ yellow_ratio<-round(yellow_ratio, digits=2)
 red_ratio<-match_summary$team1.reds-match_summary$team2.reds
 red_ratio<-round(red_ratio, digits=2)
 lists<-list(winner=winner,
-            shot.ratio=shot_ratio,
-            shot.ratio.target=shot_target_ratio,
-            pass.ratio=pass_ratio,
-            pass.acc.ratio=pass_acc_ratio,
-            possession.ratio=possession_ratio,
-            corners.ratio=corners_ratio,
-            offside.ratio=offside_ratio,
-            foul.ratio=foul_ratio,
-            yellow.ratio=yellow_ratio,
-            red.ratio=red_ratio)
+            shot.dif=shot_ratio,
+            shot.target.dif=shot_target_ratio,
+            pass.dif=pass_ratio,
+            pass.acc.dif=pass_acc_ratio,
+            possession.dif=possession_ratio,
+            corners.dif=corners_ratio,
+            offside.dif=offside_ratio,
+            foul.dif=foul_ratio,
+            yellow.dif=yellow_ratio,
+            red.dif=red_ratio)
 match_diff<-as.data.frame(do.call(cbind, (lists)))
 match_diff$winner<-as.factor(match_diff$winner)
-match_diff$shot.ratio<-as.numeric(match_diff$shot.ratio)
-match_diff$shot.ratio.target<-as.numeric(match_diff$shot.ratio.target)
-match_diff$pass.ratio<-as.numeric(match_diff$pass.ratio)
-match_diff$pass.acc.ratio<-as.numeric(match_diff$pass.acc.ratio)
-match_diff$possession.ratio<-as.numeric(match_diff$possession.ratio)
-match_diff$corners.ratio<-as.numeric(match_diff$corners.ratio)
-match_diff$offside.ratio<-as.numeric(match_diff$offside.ratio)
-match_diff$foul.ratio<-as.numeric(match_diff$foul.ratio)
-match_diff$yellow.ratio<-as.numeric(match_diff$yellow.ratio)
-match_diff$red.ratio<-as.numeric(match_diff$red.ratio)
+match_diff$shot.ratio<-as.numeric(match_diff$shot.dif)
+match_diff$shot.ratio.target<-as.numeric(match_diff$shot.target.dif)
+match_diff$pass.ratio<-as.numeric(match_diff$pass.dif)
+match_diff$pass.acc.ratio<-as.numeric(match_diff$pass.acc.dif)
+match_diff$possession.ratio<-as.numeric(match_diff$possession.dif)
+match_diff$corners.ratio<-as.numeric(match_diff$corners.dif)
+match_diff$offside.ratio<-as.numeric(match_diff$offside.dif)
+match_diff$foul.ratio<-as.numeric(match_diff$foul.dif)
+match_diff$yellow.ratio<-as.numeric(match_diff$yellow.dif)
+match_diff$red.ratio<-as.numeric(match_diff$red.dif)
 xkabledplyhead(match_summary)
 xkabledplyhead(match_diff)
 ```
 
 ```{r logistical regression using match_diff}
-library(bestglm)
-winner_model<-glm(winner ~ ., data=match_diff, family='binomial')
-summary(winner_model)
+#library(bestglm)
+#winner_model<-glm(winner ~ ., data=match_diff, family='binomial')
+#summary(winner_model)
 
-xkabledply(winner_model, title = paste("Logistic Regression :", format(formula(winner_model)) ))
+#xkabledply(winner_model, title = paste("Logistic Regression :", format(formula(winner_model)) ))
 
-winner_model2<-glm(winner ~ shot.ratio + shot.ratio.target + pass.acc.ratio + corners.ratio, data = match_diff, family='binomial')
-summary(winner_model2)
+#winner_model2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif, data = match_diff, family='binomial')
+#summary(winner_model2)
 ```
 
 ```{r confusion matrix}
-loadPkg("regclass")
-xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
+#loadPkg("regclass")
+#xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
 ```
 
 ```{r ROC and AUC}
-loadPkg("pROC")
-prob=predict(winner_model2, type = "response" )
-match_diff$prob=prob
-h <- roc(winner~prob, data=match_diff)
-auc(h)
-plot(h, main='ROC Curve')
+#loadPkg("pROC")
+#prob=predict(winner_model2, type = "response" )
+#match_diff$prob=prob
+#h <- roc(winner~prob, data=match_diff)
+#auc(h)
+#plot(h, main='ROC Curve')
 ```
 
 ```{r train and test}
 # Make training and test data sets
-set.seed(1)
-row.number<-sample(1:nrow(match_diff), 0.8*nrow(match_diff))
-match_train<-match_diff[row.number,]
-match_test<-match_diff[-row.number,]
-
-# Train
-winner_model<-glm(winner ~ ., data=match_train, family='binomial')
-
-# Test
-pred<-predict(winner_model, newdata = match_test, type='response')
-match_test$pred=pred
-
-# Confusion Matrix
-conf_matrix<-xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
-conf_matrix
-accuracy=(567+562)/1552
-recall=(214+562)/776
-
-# Calculate ROC and AUC
-h <- roc(winner~prob, data=match_diff)
-auc(h)
-plot(h)
+#set.seed(1)
+#row.number<-sample(1:nrow(match_diff), 0.8*nrow(match_diff))
+#match_train<-match_diff[row.number,]
+#match_test<-match_diff[-row.number,]
+#
+## Train
+#winner_model<-glm(winner ~ ., data=match_train, family='binomial')
+#
+## Test
+#pred<-predict(winner_model, newdata = match_test, type='response')
+#match_test$pred=pred
+#
+## Confusion Matrix
+#conf_matrix<-xkabledply(confusion_matrix(winner_model), title = "Confusion matrix from Logit Model" )
+#conf_matrix
+#accuracy=(567+562)/1552
+#recall=(214+562)/776
+#
+## Calculate ROC and AUC
+#h <- roc(winner~prob, data=match_diff)
+#auc(h)
+#plot(h)
 ```
