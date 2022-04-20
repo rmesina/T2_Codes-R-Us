@@ -190,12 +190,16 @@ match_diff$offside.ratio<-as.numeric(match_diff$offside.ratio)
 match_diff$foul.ratio<-as.numeric(match_diff$foul.ratio)
 match_diff$yellow.ratio<-as.numeric(match_diff$yellow.ratio)
 match_diff$red.ratio<-as.numeric(match_diff$red.ratio)
+xkabledplyhead(match_summary)
+xkabledplyhead(match_diff)
 ```
 
 ```{r logistical regression using match_diff}
 library(bestglm)
 winner_model<-glm(winner ~ ., data=match_diff, family='binomial')
 summary(winner_model)
+
+xkabledply(winner_model, title = paste("Logistic Regression :", format(formula(winner_model)) ))
 
 winner_model2<-glm(winner ~ shot.ratio + shot.ratio.target + pass.acc.ratio + corners.ratio, data = match_diff, family='binomial')
 summary(winner_model2)
