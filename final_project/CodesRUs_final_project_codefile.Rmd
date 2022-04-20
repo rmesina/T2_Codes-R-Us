@@ -4,6 +4,7 @@ authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
 date: "March 9, 2022"
 output:
   html_document:
+    code_folding: hide
     toc: yes
     toc_float: yes
     theme: cerulean
@@ -31,7 +32,7 @@ library(mice)
 library(ISLR)
 library(leaps)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 options(scientific=T, digits = 3) 
 # options(scipen=9, digits = 3) 
 # ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
@@ -509,7 +510,7 @@ goal_dist_pitch
 ```
 **Figure 1.** Event field locations and x & y-coordinate density plots for (Top Left) Key Passes, (Top Right) Assists, (Bottom Left) Shots, and (Bottom Right) Goals.
 
-The distance distributions for key passes and assists are displayed in Figure 3. Both show fairly normal distributions, despite the fact that neither the x,y-coordinates for these two events show normal distributions. The distances of shots and goals were not examined as the x & y end coordinates given in the dataset were found to be inaccurate.
+The distance distributions for key passes and assists are displayed in Figure 3. Both show fairly normal distributions, despite the fact that neither the x,y-coordinates for these two events show normal distributions. The distances of shots and goals were not examined as the x & y end coordinates given in the data set were found to be inaccurate.
 ```{r event distance distribution, fig.show='hold', out.width='50%'}
 key_pass_dist<-ggplot()+
   geom_density(data=key_passes, aes(x=dist, y=..density..), color='Black', fill='Gold', alpha=0.3)+
@@ -566,7 +567,151 @@ assist_dist
 **Figure 2.** Event distance for (Left)  Key Passes and (Right) Assists.
 
 ## SART Question 1: Modeling Goal Probability
+In the midterm project, we came up with a logit model to try and predict the probabilities of scoring a goal, given the (x, y) starting coordinates on the field, the (x, y) ending coordinates, as well as the distance travelled by the ball.
 
+There were some issues with this approach:
+1.	There was high multicollinearity between the terms in the model. For example, “Distance” is dependent on the (x, y) coordinates for starting and ending plays.
+2.	The data from the independent variables was not centered.
+3.	The Betas obtained at the summary of the model were not the probabilities of scoring a goal; rather, they were the logit coefficients of the model. We had not seen the technique to convert the logit coefficients to actual probabilities (i.e., fitted values), so we were unable to propose a better model.
+4.	From the previous point, it is then necessary to build an additional vector in the database that includes reasonable values of the probabilities of scoring a goal. We then need to build an additional model that results in Betas expressed as probabilities of scoring a goal.
+
+With this, we did 4 things:
+1.	Checked that the selection of observations is balanced: similar number of observations for success as for failure (1 or 0 in “Success” vector). These counts resulted in 30,475 observations of success vs 33,786 observations of failure. It’s more or less balanced, so no further action was taken.
+ 
+2.	We centered the values of independent variables: subtract the mean from of each variable from each observation of that variable.
+
+3.	We built new logit models, considering interaction terms.
+
+4.	We evaluated the logit models based on BIC and VIF criteria, and selected the one that had no multicollinearity and lowest BIC.
+
+```{r }
+pacman::p_load(tidyverse, tidyr, dplyr, readr, stats, car)
+
+#From merge_new, obtain the rows that contain "Shot", "Assist", "Goal" and/or "Key pass".
+merge4model_shot <- filter(event_data, Subevent.Name == "Shot")
+merge4model_AGK <- filter(event_data, Tag.1 == "Assist" | Tag.1 == "Goal" | Tag.1 == "Key pass")
+
+merge_model <- bind_rows(merge4model_shot, merge4model_AGK)
+merge_model <- distinct(merge_model) #Removes repeated rows
+
+#Assign a boolean for goal scored (1), or not (0)
+merge_model$Tag.6 <- ifelse(merge_model$Tag.5 == "Accurate" | is.na(merge_model$Tag.5) | merge_model$Tag.5 == "Not Accurate", "Other", "Accurate")
+
+merge_model$Success <- as.integer(merge_model$Success)
+merge_model$Success <- ifelse((merge_model$Tag2 == "Accurate"|
+                                merge_model$Tag3 == "Accurate"|
+                                merge_model$Tag4 == "Accurate"|
+                                merge_model$Tag5 == "Accurate"|
+                                merge_model$Tag6 == "Accurate"),1,0)
+
+merge_model$Success <- ifelse(is.na(merge_model$Success),0,1)
+unique(merge_model$Success)
+
+#Calculate the distance for each event using Pythagoras theorem:
+#Typical dimensions of a field: 120 by 75 yards
+merge_model$Distance <- rep(0, times = nrow(merge_model))
+merge_model$Distance <- sqrt((1.2*(merge_model$x_end - merge_model$x_start))**2 + 
+                               (0.75*(merge_model$y_end - merge_model$y_start))**2)
+
+#Build different models of probability of success
+model1 <-glm(Success ~ x_start + y_start, data = merge_model)
+model2 <- glm(Success ~ x_start + x_end + y_start + y_end, data = merge_model)
+model3 <- glm(Success ~ x_start + x_end + y_start + y_end + Distance, data = merge_model, family = "binomial")
+
+#Summaries of models
+summary(model1)
+summary(model2)
+summary(model3) 
+
+#BIC of models: lower value means better model
+BIC(model1)
+BIC(model2)
+BIC(model3) # model3 is the best fitted.
+
+#Testing
+merge_model$Predict <- 0.4905 + 0.002179*merge_model$x_start + 
+  0.009305*merge_model$x_end + 0.0002713*merge_model$y_start -
+  0.0109*merge_model$y_end - 0.002941*merge_model$Distance
+summary(merge_model$Predict)
+```
+
+```{r step 1}
+#STEP 1. CHECK THE DATA IS CENTERED: NUMBER OF SUCCESS AND FAILURE ARE MORE OR 
+#LESS THE SAME
+sum(merge_model$Success == 1) #30,475 observations
+sum(merge_model$Success == 0) #33,786 observations. They are similar.
+```
+
+```{r step 2}
+#STEP 2. CENTER VALUES OF INDEPENDENT VARIABLES: SUBTRACT THE MEAN 
+#FROM OF EACH VARIABLE FROM EACH OBSERVATION OF THAT VARIABLE.
+merge_model2 <- merge_model
+
+merge_model2$x_start <- merge_model$x_start - mean(merge_model$x_start)
+merge_model2$x_end <- merge_model$x_end - mean(merge_model$x_end)
+merge_model2$y_start <- merge_model$y_start - mean(merge_model$y_start)
+merge_model2$y_end <- merge_model$y_end - mean(merge_model$y_end)
+```
+
+```{r step 3}
+#STEP 3. Make the logit model. Obtain the probability vector.
+model3 <- glm(Success ~ x_start + x_end + y_start + y_end + Distance, data = merge_model2, family = "binomial")
+model4 <- glm(Success ~ x_start*y_start , data = merge_model2, family = "binomial")
+model5 <- glm(Success ~ x_end + y_end + x_start*y_start , data = merge_model2, family = "binomial")
+model6 <- glm(Success ~ Distance + x_start*y_start , data = merge_model2, family = "binomial")
+```
+
+```{r step 4}
+#STEP 4. EVALUATE THE MODELS
+BIC(model3)
+BIC(model4)
+BIC(model5)
+BIC(model6)
+
+vif(model3)
+vif(model4)
+vif(model5)
+vif(model6)
+
+summary3 <- summary(model3)
+summary4 <- summary(model4)
+summary5 <- summary(model5)
+summary6 <- summary(model6)
+
+with(summary3, 1 - deviance/null.deviance) #McFadden's R^2
+with(summary4, 1 - deviance/null.deviance)
+with(summary5, 1 - deviance/null.deviance)
+with(summary6, 1 - deviance/null.deviance)
+```
+Model6 has a high BIC, but it doesn't show multicollinearity (vif < 2). Thus, this is the model we will use.
+
+```{r step 5}
+#STEP 5. ADD THE PROBABILITY VECTOR TO THE DATABASE FROM THE FITTED VALUES
+merge_model2$probability <- model6$fitted.values
+summary(merge_model2$probability) #Values here make sense
+```
+
+```{r step 6}
+# STEP 6. MAKE A NEW MODEL WITH THE PROBABILITIES AS DEPENDANT VARIABLE
+model6b <- glm(probability ~ Distance + x_start*y_start , data = merge_model2)
+summary(model6b)
+vif(model6b)
+with(summary(model6b), 1 - deviance/null.deviance)
+BIC(model6b)
+```
+
+```{r testing new model}
+#TESTING THE NEW MODEL
+datatest_model6b <- select(merge_model2, one_of(c("Distance", "x_start", "y_start")))
+merge_model2$probability_test <- predict(model6b, datatest_model6b)
+
+ggplot(data = merge_model2, aes(probability_test - probability))+
+         geom_histogram(bins = 10, binwidth = 0.005)+
+  coord_cartesian(xlim = c(-0.2, 0.2))+
+  labs(title = "Histogram. Error of estimates form Model 6b", 
+       subtitle = "Probability estimate - Probability from Logit", 
+       x = "Errors", y = "Frequency")
+```
 
 ## SMART Question 2: Predicting Match Winner
 In order to predict the match winner based on the match summary variables, we decided to first reduce the number of variables taking the difference between a certain stat for the two teams. This halved the number of variables to look at. This resulted in the data frame in table 3, where a positive value is in favor of team 1 while a negative value favors team 2. Ratios were not used because many of the values in some of the variables have a zero value, so taking the ratio often resulted in not useful values.
@@ -696,7 +841,7 @@ The data set, teams, now has 3,882 records that can be used to analyze number of
 corr <- cor(teams_cont)
 corrplot.mixed(corr)
 ```
-**Figure**
+**Figure 4.** Mixed correlation plot.
 
 We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared to compare models.
 
@@ -715,8 +860,8 @@ vif(adjr2_bic_model)
 
 The best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals.
 
-
-```{r Making training and testing datasets}
+To train our linear regression model, we created train and test data sets in 20-80 split of the match-diff data frame. We analyzed the training results of our model looking at the residual values in the plots below.
+```{r Making training and testing datasets, fig.show='hold', out.width='50%'}
 # Make training and test data sets
 set.seed(1)
 row.number<-sample(1:nrow(teams), 0.8*nrow(teams))
@@ -728,8 +873,9 @@ model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners +
 summary(model_goals)
 plot(model_goals)
 ```
-**Figure**
+**Figure 5.** Plots showing the residuals of our model on the training data.
 
+Next, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals.
 ```{r test linear regression model}
 # Test model
 teams_test$pred_goals<-predict(model_goals, newdata=teams_test)
@@ -739,7 +885,7 @@ c(RMSE = rmse, R2=summary(model_goals)$r.squared)
 plot(teams_test$goals, teams_test$pred_goals, xlab='Expected Goals', ylab='Predicted Goals', main='Results of Testing', ylim = c(-0.5,7), xlim=c(-0.5,7))
 abline(lm(pred_goals~goals,data=teams_test),col='red')
 ```
-**Figure**
+**Figure 6.** Predicted number of goals vs expected number of goals.
 
 Now we want to see whether we can incorporate these variables without worrying about multicollinearity, as well as find any trends or relations previously hidden from us. We may be able to do that using PCA/PCR.
 
@@ -749,6 +895,7 @@ teams_cont_scaled <- data.frame(scale(teams_cont))
 teams_pca <- prcomp(teams_cont_scaled)
 xkabledply(teams_pca)
 ```
+**Table 5.** Displays the contribution of each variable to each PC.
 
 ```{r PCR}
 pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
@@ -757,17 +904,24 @@ summary(pcr.fit.cont)
 
 validationplot(pcr.fit.cont, val.type = "R2")
 ```
+**Figure 7.** Shows R^2 vs number of PC components.
 
 ```{r test}
 teamsscaled.pc <- PCAxform( teams_cont[,2:11], z=TRUE ) # exclude goals column at index 1
 teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
-head(teamsscaled.pc)
+#head(teamsscaled.pc)
+```
 
+First PC model used all pc components, summary for which is shown below. We found that PC1, PC2, PC7, and PC9 were the most significant components without showing much similarities in the weighted values for each variable within the components.
+```{r full pc model}
 fit_pc <- lm(goals~., data = teamsscaled.pc)
-ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
+#ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
 summary(fit_pc)
+```
 
+A limited model was then build using these components, PC1, PC2, PC7, and PC9. The summary for which is shown below.
+```{r limmited pc model}
 fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
-ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
+#ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
 summary(fit_pc_lim)
 ```
