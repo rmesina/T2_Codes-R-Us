@@ -136,11 +136,11 @@ train$goals<-relevel(train$goals, ref='0')
 multinomial_model<-multinom(goals ~ ., data=train, MaxNWts=100000)
 
 # Test model
-#test$goalsPredicted<-predict(multinomial_model, newdata = test, "class")
+test$goalsPredicted<-predict(multinomial_model, newdata = test, "class")
 
 # Results
-#tab<-table(test$goals, test$goalsPredicted)
-#tab
+tab<-table(test$goals, test$goalsPredicted)
+tab
 
 #round((sum(diag(tab))/sum(tab))*100,2)
 ```
