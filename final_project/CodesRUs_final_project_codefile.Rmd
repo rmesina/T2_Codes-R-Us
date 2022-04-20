@@ -557,4 +557,91 @@ assist_dist
 ```
 **Figure 2.** Event distance for (Left)  Key Passes and (Right) Assists.
 
+## SART Question 1: Modeling Goal Probability
+
+
+## SMART Question 2: Predicting Match Winner
+
+```{r simplifying match summary}
+match_summary <- data.frame(read.csv('./datasets/match_summary.csv'))
+
+winner<-match_summary$winner
+shot_ratio<-match_summary$team1.shots-match_summary$team2.shots
+shot_ratio<-round(shot_ratio, digits=2)
+shot_target_ratio<-match_summary$team1.shots.target-match_summary$team2.shots.target
+shot_target_ratio<-round(shot_target_ratio, digits=2)
+pass_ratio<-match_summary$team1.passes-match_summary$team2.passes
+pass_ratio<-round(pass_ratio, digits=2)
+pass_acc_ratio<-match_summary$team1.pass.acc-match_summary$team2.pass.acc
+pass_acc_ratio<-round(pass_acc_ratio, digits=2)
+possession_ratio<-match_summary$team1.possession-match_summary$team2.possession
+possession_ratio<-round(possession_ratio, digits=2)
+corners_ratio<-match_summary$team1.corners-match_summary$team2.corners
+corners_ratio<-round(corners_ratio, digits=2)
+offside_ratio<-match_summary$team1.offsides-match_summary$team2.offsides
+offside_ratio<-round(offside_ratio, digits=2)
+foul_ratio<-match_summary$team1.fouls-match_summary$team2.fouls
+foul_ratio<-round(foul_ratio, digits=2)
+yellow_ratio<-match_summary$team1.yellows-match_summary$team2.yellows
+yellow_ratio<-round(yellow_ratio, digits=2)
+red_ratio<-match_summary$team1.reds-match_summary $team2.reds
+red_ratio<-round(red_ratio, digits=2)
+lists<-list(winner=winner,
+            shot.dif=shot_ratio,
+            shot.target.dif=shot_target_ratio,
+            pass.dif=pass_ratio,
+            pass.acc.dif=pass_acc_ratio,
+            possession.dif=possession_ratio,
+            corners.dif=corners_ratio,
+            offside.dif=offside_ratio,
+            foul.dif=foul_ratio,
+            yellow.dif=yellow_ratio,
+            red.dif=red_ratio)
+match_diff<-as.data.frame(do.call(cbind, (lists)))
+match_diff$winner<-as.factor(match_diff$winner)
+match_diff$shot.ratio<-as.numeric(match_diff$shot.dif)
+match_diff$shot.ratio.target<-as.numeric(match_diff$shot.target.dif)
+match_diff$pass.ratio<-as.numeric(match_diff$pass.dif)
+match_diff$pass.acc.ratio<-as.numeric(match_diff$pass.acc.dif)
+match_diff$possession.ratio<-as.numeric(match_diff$possession.dif)
+match_diff$corners.ratio<-as.numeric(match_diff$corners.dif)
+match_diff$offside.ratio<-as.numeric(match_diff$offside.dif)
+match_diff$foul.ratio<-as.numeric(match_diff$foul.dif)
+match_diff$yellow.ratio<-as.numeric(match_diff$yellow.dif)
+match_diff$red.ratio<-as.numeric(match_diff$red.dif)
+xkabledplyhead(match_diff)
+```
+**Table 3.** First five rows of match_difference data frame. 
+
+```{r logistical regression using match_diff}
+library(bestglm)
+winner_model<-glm(winner ~ ., data=match_diff, family='binomial')
+summary(winner_model)
+xkabledply(winner_model, title = paste("Logistic Regression :", format(formula(winner_model)) ))
+winner_model2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif, data = match_diff, family='binomial')
+summary(winner_model2)
+```
+
+## SMART Question 3: Predicting Number of Goals Scored
+In order to analyze a particular variable (e.g. # goals), we need to transform the dataset from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
+
+```{r long to wide}
+
+#Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
+
+team1 <- match_summary[c('team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds')]
+
+str(team1)
+
+colnames(team1) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
+
+team2 <- match_summary[c('team2','team2.goals', 'team2.shots','team2.shots.target','team2.passes','team2.pass.acc','team2.possession','team2.corners','team2.offsides','team2.fouls','team2.yellows','team2.reds')]
+
+str(team2)
+
+colnames(team2) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
+
+teams <- rbind(team1, team2)
+
+```
 
