@@ -40,25 +40,25 @@ options(scientific=T, digits = 3)
 The data is imported by league and then compiled into a single event_data dataframe, giving a total of 3,251,294 events and 19 variables
 ```{r load data, results='markup', out.width='50%'}
 #Load Event data from each competition as a dataframe
-england<-data.frame(read.csv('./datasets/events_England_new.csv'))
+england<-data.frame(read.csv('./datasets/events_England.csv'))
 england$competition <- "England"
 
-italy<-data.frame(read.csv('./datasets/events_Italy_new.csv'))
+italy<-data.frame(read.csv('./datasets/events_Italy.csv'))
 italy$competition <- "Italy"
 
-germany<-data.frame(read.csv('./datasets/events_Germany_new.csv'))
+germany<-data.frame(read.csv('./datasets/events_Germany.csv'))
 germany$competition <- "Germany"
 
-france<-data.frame(read.csv('./datasets/events_France_new.csv'))
+france<-data.frame(read.csv('./datasets/events_France.csv'))
 france$competition <- "France"
 
-spain<-data.frame(read.csv('./datasets/events_Spain_new.csv'))
+spain<-data.frame(read.csv('./datasets/events_Spain.csv'))
 spain$competition <- "Spain"
 
-european<-data.frame(read.csv('./datasets/events_European_Championship_new.csv'))
+european<-data.frame(read.csv('./datasets/events_European_Championship.csv'))
 european$competition <- "European"
 
-worldcup<-data.frame(read.csv('./datasets/events_World_Cup_new.csv'))
+worldcup<-data.frame(read.csv('./datasets/events_World_Cup.csv'))
 worldcup$competition <- "World Cup"
                      
 #Append dataframes into a single dataframe from which to draw.

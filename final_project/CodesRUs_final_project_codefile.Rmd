@@ -1,5 +1,5 @@
 ---
-title: "CodesRUs Final Report"
+title: "CodesRUs Final Project Codefile"
 authors: "Daniel Diaz, Ganesh Ghimire, Rose Mesina, and Michael Womble"
 date: "March 9, 2022"
 output:
@@ -21,6 +21,7 @@ library(ggsoccer)
 library(ggpubr)
 library(dplyr)
 library(vtable)
+library(purrr)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
 options(scientific=T, digits = 3) 
@@ -29,27 +30,45 @@ options(scientific=T, digits = 3)
 # use scipen=999 to prevent scientific notation at all times
 ```
 
+# R-markdown: Modelling Soccer Match Events Code File
+
+## Smart Questions:
+
+We're looking to answer three SMART questions through the use of various models.
+
+1. Given the variables that describe the (X, Y) coordinates of the beginning and end of key events (shots, assists, key passes), which configuration of the variables result in the best fitting model that gives the probability of a shot on goal being successful?
+
+2. Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, being home team vs being visitor team, etc.), can we predict who the winner of a particular match was?
+
+3. Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, being home team vs being visitor team, etc.), can we predict the number of goals scored by each team?
+
+## Importing Data:
+
+**Dataset:** The dataset contains all matches played in Europe’s top five leagues during the 2017/2018 season (380 matches per league for a total of 1900 matches, producing 643,149 match events), the 2016 European Championship (51 matches, producing 78,139 match events), and the 2018 World Cup (64 matches, 101,758 match events). It was obtained from the work posted by Luca Pappalardo on Figshare.
+
+**Data Frame 1**
+This data frame contains match events for all matches across all leagues and is used to answer SMART question 1. The data is imported by league and then compiled into a single event_data data frame, the event distance is calculated and added as a variable, giving a total of 3,251,294 events and 20 variables.
 ```{r loading data}
 #Load Event data from each competition as a dataframe
-england<-data.frame(read.csv('./datasets/events_England_new.csv'))
+england<-data.frame(read.csv('./datasets/event_England.csv'))
 england$competition <- "England"
 
-italy<-data.frame(read.csv('./datasets/events_Italy_new.csv'))
+italy<-data.frame(read.csv('./datasets/event_Italy.csv'))
 italy$competition <- "Italy"
 
-germany<-data.frame(read.csv('./datasets/events_Germany_new.csv'))
+germany<-data.frame(read.csv('./datasets/event_Germany.csv'))
 germany$competition <- "Germany"
 
-france<-data.frame(read.csv('./datasets/events_France_new.csv'))
+france<-data.frame(read.csv('./datasets/event_France.csv'))
 france$competition <- "France"
 
-spain<-data.frame(read.csv('./datasets/events_Spain_new.csv'))
+spain<-data.frame(read.csv('./datasets/event_Spain.csv'))
 spain$competition <- "Spain"
 
-european<-data.frame(read.csv('./datasets/events_European_Championship_new.csv'))
+european<-data.frame(read.csv('./datasets/event_European_Championship.csv'))
 european$competition <- "European"
 
-worldcup<-data.frame(read.csv('./datasets/events_World_Cup_new.csv'))
+worldcup<-data.frame(read.csv('./datasets/event_World_Cup.csv'))
 worldcup$competition <- "World Cup"
                      
 #Append dataframes into a single dataframe from which to draw.
@@ -66,9 +85,9 @@ event_data$y.Start <- as.numeric(event_data$y.Start)
 event_data$Event.Name=as.factor(event_data$Event.Name)
 event_data$Subevent.Name=as.factor(event_data$Subevent.Name)
 event_data$Match.Period=as.factor(event_data$Match.Period)
-event_data$Match.Date=as.factor(event_data$Match.Date)
+event_data$Match.Id=as.factor(event_data$Match.Id)
 event_data$Player=as.factor(event_data$Player)
-event_data$Team.Name=as.factor(event_data$Team.Name)
+event_data$Team=as.factor(event_data$Team)
 event_data$Tag.1=as.factor(event_data$Tag.1)
 event_data$Tag.2=as.factor(event_data$Tag.2)
 event_data$Tag.3=as.factor(event_data$Tag.3)
@@ -80,9 +99,11 @@ event_data$Tag.6=as.factor(event_data$Tag.6)
 ```{r calculate distance}
 
 event_data<-event_data %>% mutate(dist = sqrt((x.End-x.Start)^2+(y.End-y.Start)^2))
-
 event_data$dist <- as.numeric(event_data$dist)
+
+xkabledplyhead(event_data)
 ```
+**Table 1.** First five rows of event_data data frame.
 
 ```{r event datasets}
 #Collect shots, goals, assists, and key passes into their own dataframes
@@ -93,3 +114,447 @@ goals<-subset(goals, Event.Name!='Save attempt')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
 ```
+
+**Data Frame 2**
+This data frame contains all match stats typically listed in the match summary of a game. These stats include shots, shots on target, passes, pass accuracy, possession (%), corners, offsides, fouls, yellows, and reds. This data frame was obtained using the match ID and counting each of these events for each match in data frame 1. This data frame is used to answer SMART question 2 & 3.
+```{r match summary function}
+match_ls<-event_data$Match.Id
+match_ls<-unique(match_ls)
+
+# Stat lists to put stats into
+match_ids<-list()
+team1s<-list()
+team2s<-list()
+winners<-list()
+team1_goals<-list()
+team2_goals<-list()
+team1_shots<-list()
+team1_shots_target<-list()
+team2_shots<-list()
+team2_shots_target<-list()
+team1_passes<-list()
+team1_pass_acc<-list()
+team2_passes<-list()
+team2_pass_acc<-list()
+team1_possession<-list()
+team2_possession<-list()
+team1_fouls<-list()
+team2_fouls<-list()
+team1_yellows<-list()
+team1_reds<-list()
+team2_yellows<-list()
+team2_reds<-list()
+team1_offsides<-list()
+team2_offsides<-list()
+team1_corners<-list()
+team2_corners<-list()
+```
+
+```{r for loop}
+# for loop to get match stats for each match
+for (match in match_ls) {
+  match_data<-subset(event_data, Match.Id==match)
+
+  match_time1<-subset(match_data, Match.Period=='1H')
+  match_time2<-subset(match_data, Match.Period=='2H')
+  
+  time1<-match_time1$Event.Time
+  time2<-match_time2$Event.Time
+  
+  time1<-prepend(time1, 0, before=1)
+  time2<-prepend(time2, 0, before = 1)
+  
+  time1_duration<-diff(time1, lag = 1)
+  time2_duration<-diff(time2, lag = 1)
+  
+  match_time1$Event.Duration<-time1_duration
+  match_time2$Event.Duration<-time2_duration
+  
+  match_data<-rbind(match_time1, match_time2)
+  
+  #Get event data for each team in match
+  teams<-match_data$Team
+  teams<-unique(teams)
+  team1=teams[1]
+  team2=teams[2]
+  team1_data<-subset(match_data, Team==team1)
+  team2_data<-subset(match_data, Team==team2)
+  
+  team1s<-append(team1s, team1)
+  team2s<-append(team2s, team2)
+  
+  match_ids<-append(match_ids, match)
+  
+  
+  #Shots Data
+  team1_shot<-subset(team1_data, Event.Name=='Shot')
+  team1_shot_target<-subset(team1_shot, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  team2_shot<-subset(team2_data, Event.Name=='Shot')
+  team_2shot_target<-subset(team2_shot, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  shots1<-length(team1_shot$Event.Name)
+  shots2<-length(team2_shot$Event.Name)
+  
+  shot_target1<-length(team1_shot_target$Event.Name)
+  shot_target2<-length(team_2shot_target$Event.Name)
+  
+  team1_shots<-append(team1_shots, shots1)
+  team2_shots<-append(team2_shots, shots2)
+  team1_shots_target<-append(team1_shots_target, shot_target1)
+  team2_shots_target<-append(team2_shots_target, shot_target2)
+  
+  
+  #Goals Data
+  team1_goal<-subset(team1_data, Event.Name=='Shot' & Tag.1=='Goal')
+  
+  team2_goal<-subset(team2_shot, Event.Name=='Shot' & Tag.1=='Goal')
+  
+  goal1<-length(team1_goal$Event.Name)
+  goal2<-length(team2_goal$Event.Name)
+  
+  team1_goals<-append(team1_goals, goal1)
+  team2_goals<-append(team2_goals, goal2)
+  
+  # Determine winner
+  if (goal1 > goal2) {
+    winner<-'team1'}
+  
+  if (goal2 > goal1) {
+    winner<-'team2'}
+  
+  winners<-append(winners, winner)
+  #Pass Data
+  
+  #Subset pass data
+  team1_pass<-subset(team1_data, Event.Name=='Pass')
+  team1_pass_target<-subset(team1_pass, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  team2_pass<-subset(team2_data, Event.Name=='Pass')
+  team2_pass_target<-subset(team2_pass, Tag.1=='Accurate' | Tag.2=='Accurate' | Tag.3=='Accurate' | Tag.4=='Accurate'| Tag.5=='Accurate' |   Tag.6=='Accurate')
+    
+  # Calculate Pass Stats
+  passes_target1<-length(team1_pass_target$Event.Name)
+  passes1<-length(team1_pass$Event.Name)
+  passes_target2<-length(team2_pass_target$Event.Name)
+  passes2<-length(team2_pass$Event.Name)
+  pass_acc1<-passes_target1/passes1*100
+  pass_acc2<-passes_target2/passes2*100
+  
+  # Add pass stat to lists
+  team1_passes<-append(team1_passes, passes_target1)
+  team2_passes<-append(team2_passes, passes_target2)
+  team1_pass_acc<-append(team1_pass_acc, pass_acc1)
+  team2_pass_acc<-append(team2_pass_acc, pass_acc2)
+  
+  # Corners
+  corners1<-length(which(team1_data$Subevent.Name=='Corner'))
+  corners2<-length(which(team2_data$Subevent.Name=='Corner'))
+  
+  team1_corners<-append(team1_corners, corners1)
+  team2_corners<-append(team2_corners, corners2)
+  
+  #Possession Data
+  team1_time<-sum(team1_data$Event.Duration)
+  team2_time<-sum(team2_data$Event.Duration)
+  match_time<-sum(match_data$Event.Duration)
+  
+  possession1<-team1_time/match_time*100
+  possession2<-team2_time/match_time*100
+  
+  team1_possession<-append(team1_possession, possession1)
+  team2_possession<-append(team2_possession, possession2)
+  
+  #Offside Data
+  offside1<-length(which(team1_data$Event.Name=='Offside'))
+  offside2<-length(which(team2_data$Event.Name=='Offside'))
+  
+  team1_offsides<-append(team1_offsides, offside1)
+  team2_offsides<-append(team2_offsides, offside2)
+  
+  #Fouls Data (fouls committed by each team)
+  fouls1<-length(which(team1_data$Event.Name=='Foul'))
+  fouls2<-length(which(team2_data$Event.Name=='Foul'))
+  
+  team1_fouls<-append(team1_fouls, fouls1)
+  team2_fouls<-append(team2_fouls, fouls2)
+  
+  #Card Data
+  team1_yellow1<-subset(team1_data, Tag.1=='Yellow card' | Tag.2=='Yellow card' | Tag.3=='Yellow card' | Tag.4=='Yellow card'| Tag.5=='Yellow   card' | Tag.6=='Yellow card')
+  
+  team1_yellow2<-subset(team1_data, Tag.1=='Second yellow card' | Tag.2=='Second yellow card' | Tag.3=='Second yellow card' | Tag.4=='Second   yellow card'| Tag.5=='Second yellow card' | Tag.6=='Second yellow card')
+  
+  team1_yellow<-rbind(team1_yellow1, team1_yellow2)
+    
+  team1_red<-subset(team1_data, Tag.1=='Red card' | Tag.2=='Red card' | Tag.3=='Red card' | Tag.4=='Red card'| Tag.5=='Red card' | Tag.6=='Red   card')
+    
+  team2_yellow1<-subset(team2_data, Tag.1=='Yellow card' | Tag.2=='Yellow card' | Tag.3=='Yellow card' | Tag.4=='Yellow card'| Tag.5=='Yellow   card' | Tag.6=='Yellow card')
+  
+  team2_yellow2<-subset(team2_data, Tag.1=='Second yellow card' | Tag.2=='Second yellow card' | Tag.3=='Second yellow card' | Tag.4=='Second   yellow card'| Tag.5=='Second yellow card' | Tag.6=='Second yellow card')
+  
+  team2_yellow<-rbind(team2_yellow1, team2_yellow2)
+    
+  team2_red<-subset(team2_data, Tag.1=='Red card' | Tag.2=='Red card' | Tag.3=='Red card' | Tag.4=='Red card'| Tag.5=='Red card' | Tag.6=='Red   card')
+  
+  # Calculate card stats
+  yellows1<-length(team1_yellow$Event.Name)
+  yellows2<-length(team2_yellow$Event.Name)
+  reds1<-length(team1_red$Event.Name)
+  reds2<-length(team2_red$Event.Name)
+  
+  # Append to list
+  team1_yellows<-append(team1_yellows, yellows1)
+  team2_yellows<-append(team2_yellows, yellows2)
+  team1_reds<-append(team1_reds, reds1)
+  team2_reds<-append(team2_reds, reds2)
+  }
+```
+
+```{r match summary dataframe}
+lists<-list(match.id=match_ids,
+            team1=team1s)
+match_sum_df<-as.data.frame(do.call(cbind, lists))
+match_sum_df$team2<-team2s
+match_sum_df$winner<-winners
+match_sum_df$team1.goals<-team1_goals
+match_sum_df$team2.goals<-team2_goals
+match_sum_df$team1.shots<-team1_shots
+match_sum_df$team2.shots<-team2_shots
+match_sum_df$team1.shots.target<-team1_shots_target
+match_sum_df$team2.shots.target<-team2_shots_target
+match_sum_df$team1.passes<-team1_passes
+match_sum_df$team2.passes<-team2_passes
+match_sum_df$team1.pass.acc<-team1_pass_acc
+match_sum_df$team2.pass.acc<-team2_pass_acc
+match_sum_df$team1.possession<-team1_possession
+match_sum_df$team2.possession<-team2_possession
+match_sum_df$team1.corners<-team1_corners
+match_sum_df$team2.corners<-team2_corners
+match_sum_df$team1.offsides<-team1_offsides
+match_sum_df$team2.offsides<-team2_offsides
+match_sum_df$team1.fouls<-team1_fouls
+match_sum_df$team2.fouls<-team2_fouls
+match_sum_df$team1.yellows<-team1_yellows
+match_sum_df$team2.yellows<-team2_yellows
+match_sum_df$team1.reds<-team1_reds
+match_sum_df$team2.reds<-team2_reds
+
+xkabledplyhead(match_sum_df)
+```
+**Table 2.** First five rows of match summary data frame. Each row is one match.
+
+```{r write to csv}
+library(data.table)
+fwrite(match_sum_df,'C:\\Users\\dmmkm\\desktop\\match_summary.csv')
+```
+
+## Quick Review of EDA
+Using the ggsoccer library to plot event data on an image of a pitch and bordering the x and y axis with event density plots we were quickly able to understand how each event is distributed on the pitch, shown in Figure 1.
+```{r plot events on soccer pitch}
+shots_fig<-ggplot(shots)+
+  annotate_pitch()+
+  geom_point(aes(x=x.Start, y=y.Start))+
+  #scale_color_continuous(color='reds')+
+  #geom_point(aes(x=x.Start, y=y.Start))+
+  theme_pitch()+
+  theme(plot.margin = unit(c(-0.5,-0.5,-0.5,-0.5), 'cm'))
+
+goals_fig<-ggplot(goals)+
+  annotate_pitch()+
+  geom_point(aes(x=x.Start, y=y.Start))+
+  theme_pitch()+
+  theme(plot.margin = unit(c(-0.5,-0.5,-0.5,-0.5), 'cm'))
+
+key_passes_fig<-ggplot(key_passes)+
+  annotate_pitch()+
+  geom_point(aes(x=x.Start, y=y.Start))+
+  theme_pitch()+
+  theme(plot.margin = unit(c(-0.5,-0.5,-0.5,-0.5), 'cm'))
+
+assists_fig<-ggplot(assists)+
+  annotate_pitch()+
+  geom_point(aes(x=x.Start, y=y.Start))+
+  theme_pitch()+
+  theme(plot.margin = unit(c(-0.5,-0.5,-0.5,-0.5), 'cm'))
+```
+
+```{r density plots for pitch event plots}
+key_passes_histx<-ggplot()+
+  geom_density(data=(key_passes), aes(x=x.Start, y=..density..), color='Black', fill='Gold', alpha=0.3)+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,-0.5,-0.1), 'cm'))
+
+key_passes_histy<-ggplot()+
+  geom_density(data=(key_passes), aes(x=y.Start, y=..density..), color='Black', fill='Gold', alpha=0.3)+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,0.1,-0.5), 'cm'))+
+  rotate()
+
+assists_histx<-ggplot()+
+  geom_density(data=(assists), aes(x=x.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,-0.5,-0.1), 'cm'))
+
+assists_histy<-ggplot()+
+  geom_density(data=(assists), aes(x=y.Start, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,0.1,-0.5), 'cm'))+
+  rotate()
+
+shots_histx<-ggplot()+
+  geom_density(data=(shots), aes(x=x.Start, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,-0.5,-0.1), 'cm'))
+
+
+shots_histy<-ggplot()+
+  geom_density(data=(shots), aes(x=y.Start, y=..density..), color='Black', fill='Red', alpha=0.3, ylim=c(0,100))+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,0.1,-0.5), 'cm'))+
+  rotate()
+
+goals_histx<-ggplot()+
+  geom_density(data=(goals), aes(x=x.Start, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,-0.5,-0.1), 'cm'))
+
+goals_histy<-ggplot()+
+  geom_density(data=(goals), aes(x=y.Start, y=..density..), color='Black', fill='Blue', alpha=0.3, ylim=c(0,100))+
+  scale_x_continuous(limits = c(0,100))+
+  theme(panel.background=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(0,0,0.1,-0.5), 'cm'))+
+  rotate()
+```
+
+```{r pitch+hist plots, fig.show='hold', out.width='50%'}
+key_pass_dist_pitch<-ggarrange(key_passes_histx, NULL, key_passes_fig, key_passes_histy,
+          ncol=2, nrow=2,
+          widths=c(2,1), heights=c(1,2)) %>%
+  annotate_figure(top=text_grob('Key Pass Distribution', face='bold', size=20))
+
+assist_dist_pitch<-ggarrange(assists_histx, NULL, assists_fig, assists_histy,
+          ncol=2, nrow=2,
+          widths=c(2,1), heights=c(1,2)) %>%
+  annotate_figure(top=text_grob('Assist Distribution', face='bold', size=20))
+
+shot_dist_pitch<-ggarrange(shots_histx, NULL, shots_fig, shots_histy,
+          ncol=2, nrow=2,
+          widths=c(2,1), heights=c(1,2)) %>%
+  annotate_figure(top=text_grob('Shot Distribution', face='bold', size=20))
+
+goal_dist_pitch<-ggarrange(goals_histx, NULL, goals_fig, goals_histy,
+          ncol=2, nrow=2,
+          widths=c(2,1), heights=c(1,2)) %>%
+  annotate_figure(top=text_grob('Goal Distribution', face='bold', size=20))
+
+key_pass_dist_pitch
+assist_dist_pitch
+shot_dist_pitch
+goal_dist_pitch
+```
+**Figure 1.** Event field locations and x & y-coordinate density plots for (Top Left) Key Passes, (Top Right) Assists, (Bottom Left) Shots, and (Bottom Right) Goals.
+
+The distance distributions for key passes and assists are displayed in Figure 3. Both show fairly normal distributions, despite the fact that neither the x,y-coordinates for these two events show normal distributions. The distances of shots and goals were not examined as the x & y end coordinates given in the dataset were found to be inaccurate.
+```{r event distance distribution, fig.show='hold', out.width='50%'}
+key_pass_dist<-ggplot()+
+  geom_density(data=key_passes, aes(x=dist, y=..density..), color='Black', fill='Gold', alpha=0.3)+
+  xlim(c(0,150))+
+  labs(title="Key Pass Distances", x="Distance", y="", )+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text.x = element_text(size=16),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title = element_text(size=16),
+        plot.title = element_text(size=20, hjust = 0.5))
+
+assist_dist<-ggplot()+
+  geom_density(data=assists, aes(x=dist, y=..density..), color='Black', fill='Green', alpha=0.3)+
+  xlim(c(0,150))+
+  labs(title="Assist Distances", x="Distance", y="")+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text.x = element_text(size=16),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title = element_text(size=16),
+        plot.title = element_text(size=20, hjust = 0.5))
+
+shot_dist<-ggplot()+
+  geom_density(data=shots, aes(x=dist, y=..density..), color='Black', fill='Red', alpha=0.3)+
+  xlim(c(0,150))+
+  labs(title="Shot Distances", x="Distance (yards)", y="")+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text.x = element_text(size=16),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title = element_text(size=16),
+        plot.title = element_text(size=20, hjust = 0.5))
+
+goal_dist<-ggplot()+
+  geom_density(data=goals, aes(x=dist, y=..density..), color='Black', fill='Blue', alpha=0.3)+
+  xlim(c(0,150))+
+  labs(title="Goal Distances", x="Distance (yards)", y="")+
+  scale_color_manual(name='Key',values=c('Green', 'Red'), labels=c('Assists','Key Passes'))+
+  theme(panel.background = element_blank(),
+        panel.border=element_rect(color='black', fill=NA),
+        axis.text.x = element_text(size=16),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title = element_text(size=16),
+        plot.title = element_text(size=20, hjust = 0.5))
+
+key_pass_dist
+assist_dist
+```
+**Figure 2.** Event distance for (Left)  Key Passes and (Right) Assists.
+
+
