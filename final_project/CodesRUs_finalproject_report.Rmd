@@ -32,6 +32,8 @@ library(pls)
 library(mice)
 library(ISLR)
 library(leaps)
+library(caret)
+require(nnet)
 pacman::p_load(ezids, ggplot2, ggsoccer, ggpubr, dplyr, vtable, readr, stats, tidyverse, tidyr)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
@@ -527,6 +529,31 @@ abline(lm(pred_goals~goals,data=teams_test),col='red')
 **Figure 6.** Predicted number of goals vs expected number of goals.
 
 ### 6.3 Developing a Logistical Regression Model to Predict Expected Goals
+```{r multinomial logistic regression}
+library(caret)
+require(nnet)
 
+# create separate data set from linear model
+teams_logit<-teams
+
+# Convert goals to factor type variable
+teams_logit$goals<-as.factor(teams_logit$goals)
+
+# Create training and test data sets
+index<-createDataPartition(teams_logit$goals, p=0.7, list=FALSE)
+train<-teams_logit[index,]
+test<-teams_logit[-index,]
+
+# Train model
+train$goals<-relevel(train$goals, ref='0')
+multinomial_model<-multinom(goals ~ ., data=train, MaxNWts=100000)
+
+# Test model
+test$goalsPredicted<-predict(multinomial_model, newdata = test, "class")
+
+# Results
+tab<-xkabledply(test$goals, test$goalsPredicted)
+tab
+```
 
 ## Chapter 7: Conclusions
