@@ -168,12 +168,6 @@ One variable we are interested in looking at is the distance of assists and key 
 ### 3.1 Understanding the Field
 To understand our data, we needed to first understand how the field is set up. The field is set up so that the length is given by the x-coordinate, and the width is given by the y-coordinate. Each coordinate is given as a percentage. Events are always oriented so that the attacking team is going from left to right.
 
-<center>
-
-![](./JPEGS/Soccer_pitch_coordinates.jpg){height=66%, width=66%}
-
-<center>
-
 **Figure 1.** Pitch schematic showing direction of attack and event x,y-coordinate example.
 
 ### 3.2 Event Visualization
