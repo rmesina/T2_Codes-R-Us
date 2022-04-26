@@ -17,7 +17,21 @@ output:
 ```{r setup, include=FALSE}
 # some of common options (and the defaults) are: 
 # include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
-
+library(ezids)
+library(ggplot2)
+library(ggsoccer)
+library(ggpubr)
+library(dplyr)
+library(vtable)
+library(purrr)
+library(pROC)
+library(regclass)
+library(car)
+library(corrplot)
+library(pls)
+library(mice)
+library(ISLR)
+library(leaps)
 pacman::p_load(ezids, ggplot2, ggsoccer, ggpubr, dplyr, vtable, readr, stats, tidyverse, tidyr)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
@@ -88,72 +102,8 @@ goals<-subset(goals, Event.Name!='Save attempt')
 assists<-subset(event_data, Tag.1=='Assist')
 key_passes<-subset(event_data, Tag.1=='Key pass')
 
-#######################################################################################
 # Load and prep match summary data
 match_summary <- data.frame(read.csv('./datasets/match_summary.csv'))
-
-
-#######################################################################################
-## Prep for SMART question 2
-## Create differential values for each match stat to model
-winner<-match_summary$winner
-shot_ratio<-match_summary$team1.shots-match_summary$team2.shots
-shot_ratio<-round(shot_ratio, digits=2)
-shot_target_ratio<-match_summary$team1.shots.target-match_summary$team2.shots.target
-shot_target_ratio<-round(shot_target_ratio, digits=2)
-pass_ratio<-match_summary$team1.passes-match_summary$team2.passes
-pass_ratio<-round(pass_ratio, digits=2)
-pass_acc_ratio<-match_summary$team1.pass.acc-match_summary$team2.pass.acc
-pass_acc_ratio<-round(pass_acc_ratio, digits=2)
-possession_ratio<-match_summary$team1.possession-match_summary$team2.possession
-possession_ratio<-round(possession_ratio, digits=2)
-corners_ratio<-match_summary$team1.corners-match_summary$team2.corners
-corners_ratio<-round(corners_ratio, digits=2)
-offside_ratio<-match_summary$team1.offsides-match_summary$team2.offsides
-offside_ratio<-round(offside_ratio, digits=2)
-foul_ratio<-match_summary$team1.fouls-match_summary$team2.fouls
-foul_ratio<-round(foul_ratio, digits=2)
-yellow_ratio<-match_summary$team1.yellows-match_summary$team2.yellows
-yellow_ratio<-round(yellow_ratio, digits=2)
-red_ratio<-match_summary$team1.reds-match_summary $team2.reds
-red_ratio<-round(red_ratio, digits=2)
-lists<-list(winner=winner,
-            shot.dif=shot_ratio,
-            shot.target.dif=shot_target_ratio,
-            pass.dif=pass_ratio,
-            pass.acc.dif=pass_acc_ratio,
-            possession.dif=possession_ratio,
-            corners.dif=corners_ratio,
-            offside.dif=offside_ratio,
-            foul.dif=foul_ratio,
-            yellow.dif=yellow_ratio,
-            red.dif=red_ratio)
-match_diff<-as.data.frame(do.call(cbind, (lists)))
-match_diff$winner<-as.factor(match_diff$winner)
-match_diff$shot.dif<-as.numeric(match_diff$shot.dif)
-match_diff$shot.target.dif<-as.numeric(match_diff$shot.target.dif)
-match_diff$pass.dif<-as.numeric(match_diff$pass.dif)
-match_diff$pass.acc.dif<-as.numeric(match_diff$pass.acc.dif)
-match_diff$possession.dif<-as.numeric(match_diff$possession.dif)
-match_diff$corners.dif<-as.numeric(match_diff$corners.dif)
-match_diff$offside.dif<-as.numeric(match_diff$offside.dif)
-match_diff$foul.dif<-as.numeric(match_diff$foul.dif)
-match_diff$yellow.dif<-as.numeric(match_diff$yellow.dif)
-match_diff$red.dif<-as.numeric(match_diff$red.dif)
-
-##################################################################################################
-## Prep for SMART question 3:
-## Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
-team1 <- match_summary[c('team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds')]
-
-colnames(team1) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
-
-team2 <- match_summary[c('team2','team2.goals', 'team2.shots','team2.shots.target','team2.passes','team2.pass.acc','team2.possession','team2.corners','team2.offsides','team2.fouls','team2.yellows','team2.reds')]
-
-colnames(team2) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
-
-teams <- rbind(team1, team2)
-teams_cont <- subset(teams, select = -c(team))
 ```
 
 ## Chapter 1: Introduction
@@ -383,18 +333,200 @@ assist_dist
 ```
 **Figure 3.** Event distance for (Left)  Key Passes and (Right) Assists.
 
-## Chapter 4: SMART Questions
+## Chapter 4: Determining Goal Probabilities
 
-### 4.1 SMART Qestion 1
+### Given the variables that describe the (X, Y) coordinates of the beginning and end of key events (shots, assists, key passes), which configuration of the variables result in the best fitting model that gives the probability of a shot on goal being successful?
 
-#### Given the variables that describe the (X, Y) coordinates of the beginning and end of key events (shots, assists, key passes), which configuration of the variables result in the best fitting model that gives the probability of a shot on goal being successful?
+## Chapter 5: Predicting Match Winners
 
-### 4.2 SMART Question 2
+### Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, being home team vs being visitor team, etc.), can we predict who the winner of a particular match was?
+In order to predict the match winner based on the match summary variables, we decided to first reduce the number of variables taking the difference between a certain stat for the two teams. This halved the number of variables to look at. This resulted in the data frame in table 3, where a positive value is in favor of team 1 while a negative value favors team 2. Ratios were not used because many of the values in some of the variables have a zero value, so taking the ratio often resulted in not useful values.
 
-#### Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, being home team vs being visitor team, etc.), can we predict who the winner of a particular match was?
+### 5.1 Setting up Match Summary Data Frame
+```{r simplifying match summary}
+match_summary <- data.frame(read.csv('./datasets/match_summary.csv'))
 
-### 4.3 SMART Question 3
+winner<-match_summary$winner
+shot_ratio<-match_summary$team1.shots-match_summary$team2.shots
+shot_ratio<-round(shot_ratio, digits=2)
+shot_target_ratio<-match_summary$team1.shots.target-match_summary$team2.shots.target
+shot_target_ratio<-round(shot_target_ratio, digits=2)
+pass_ratio<-match_summary$team1.passes-match_summary$team2.passes
+pass_ratio<-round(pass_ratio, digits=2)
+pass_acc_ratio<-match_summary$team1.pass.acc-match_summary$team2.pass.acc
+pass_acc_ratio<-round(pass_acc_ratio, digits=2)
+possession_ratio<-match_summary$team1.possession-match_summary$team2.possession
+possession_ratio<-round(possession_ratio, digits=2)
+corners_ratio<-match_summary$team1.corners-match_summary$team2.corners
+corners_ratio<-round(corners_ratio, digits=2)
+offside_ratio<-match_summary$team1.offsides-match_summary$team2.offsides
+offside_ratio<-round(offside_ratio, digits=2)
+foul_ratio<-match_summary$team1.fouls-match_summary$team2.fouls
+foul_ratio<-round(foul_ratio, digits=2)
+yellow_ratio<-match_summary$team1.yellows-match_summary$team2.yellows
+yellow_ratio<-round(yellow_ratio, digits=2)
+red_ratio<-match_summary$team1.reds-match_summary $team2.reds
+red_ratio<-round(red_ratio, digits=2)
+lists<-list(winner=winner,
+            shot.dif=shot_ratio,
+            shot.target.dif=shot_target_ratio,
+            pass.dif=pass_ratio,
+            pass.acc.dif=pass_acc_ratio,
+            possession.dif=possession_ratio,
+            corners.dif=corners_ratio,
+            offside.dif=offside_ratio,
+            foul.dif=foul_ratio,
+            yellow.dif=yellow_ratio,
+            red.dif=red_ratio)
+match_diff<-as.data.frame(do.call(cbind, (lists)))
+match_diff$winner<-as.factor(match_diff$winner)
+match_diff$shot.dif<-as.numeric(match_diff$shot.dif)
+match_diff$shot.target.dif<-as.numeric(match_diff$shot.target.dif)
+match_diff$pass.dif<-as.numeric(match_diff$pass.dif)
+match_diff$pass.acc.dif<-as.numeric(match_diff$pass.acc.dif)
+match_diff$possession.dif<-as.numeric(match_diff$possession.dif)
+match_diff$corners.dif<-as.numeric(match_diff$corners.dif)
+match_diff$offside.dif<-as.numeric(match_diff$offside.dif)
+match_diff$foul.dif<-as.numeric(match_diff$foul.dif)
+match_diff$yellow.dif<-as.numeric(match_diff$yellow.dif)
+match_diff$red.dif<-as.numeric(match_diff$red.dif)
+xkabledplyhead(match_diff)
+```
+**Table 3.** First five rows of match_difference data frame.
 
-#### Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, etc.), can we predict the number of goals scored by each team?
+### 5.2 Developing Logistic Regression Model to Predict Match Winner
+In the first model all variables in the match_difference data frame were used. Looking at the summary of the model, only 5 out of the 11 variables were found to have any significance (shot.dif, shot.target.dif, pass.acc.dif, corners.dif, and red.dif).
+```{r logistical regression model 1}
+library(bestglm)
+winner_model<-glm(winner ~ ., data=match_diff, family='binomial')
+summary(winner_model)
+```
 
-## Chapter 5: Conclusions
+In model 2 only the variables found to be significant were included.
+```{r logistical regression model 2}
+winner_model2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif, data = match_diff, family='binomial')
+summary(winner_model2)
+```
+Comparing model 1 and model 2 AIC values, they are found to be the same. Therefore, we decided to train and test model 2 as it has fewer variables but performs just as well as model 1.
+
+### 5.3 Training and Testing our Match Winner Model
+To train model 2, we created train and test data sets in 20-80 split of the match-diff data frame.
+```{r train and test}
+# Make training and test data sets
+set.seed(1)
+row.number<-sample(1:nrow(match_diff), 0.8*nrow(match_diff))
+match_train<-match_diff[row.number,]
+match_test<-match_diff[-row.number,]
+
+## Train
+winner_model2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif + red.dif, data=match_train, family='binomial')
+
+## Test
+pred<-predict(winner_model2, newdata = match_test, type='response')
+match_test$pred=pred
+```
+
+### 5.4 Assessing our Match Winner Model
+Next, we analyzed the test results of model 2 by first making a confusion matrix, from which we could calculate the accuracy, which is 73%.
+```{r model 2 confusion matrix}
+## Confusion Matrix
+conf_matrix<-xkabledply(confusion_matrix(winner_model2), title = "Confusion matrix from Logit Model" )
+conf_matrix
+accuracy=(567+562)/1552
+recall=(214+562)/776
+```
+**Table 4.** Confusion matrix of test results for winner_model2.
+
+We finished by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804.
+```{r ROC plot and AUC}
+## Calculate ROC and AUC
+h <- roc(winner~pred, data=match_test)
+#auc(h)
+plot(h)
+```
+**Figure 3.** ROC plot showing test results of winner_model2.
+
+## Chapter 6: Predicting Expected Goals
+
+### Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, etc.), can we predict the number of goals scored by each team?
+
+### 6.1 Setting up Expected Goals Data Frame
+
+In order to analyze the goals variable, we need to transform the data set from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
+```{r Set up data frame Q3}
+## Prep for SMART question 3:
+## Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
+team1 <- match_summary[c('team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds')]
+
+colnames(team1) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
+
+team2 <- match_summary[c('team2','team2.goals', 'team2.shots','team2.shots.target','team2.passes','team2.pass.acc','team2.possession','team2.corners','team2.offsides','team2.fouls','team2.yellows','team2.reds')]
+
+colnames(team2) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.acc', 'possession', 'corners', 'offsides', 'fouls', 'yellows', 'reds')
+
+teams <- rbind(team1, team2)
+teams_cont <- subset(teams, select = -c(team))
+```
+The data set, teams, now has 3,882 records that can be used to analyze number of goals and the factors that influence it. 
+
+### 6.2 Developing a Linear Model to Predict Expected Goals
+
+#### 6.2.1 Looking at Correlation Among Variables
+
+To get an idea of correlations between the variables we can look at a correlation plot.
+```{r correlation}
+#install.packages("corrplot")
+corr <- cor(teams_cont)
+corrplot.mixed(corr)
+```
+**Figure 4.** Mixed correlation plot.
+
+#### 6.2.2 Model Feature Selection
+
+We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared to compare models.
+```{r linear regressions}
+best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
+plot(best2, scale = "adjr2", main = "Adjusted R^2")
+plot(best2, scale = "bic", main = "BIC")
+
+# The best model
+adjr2_bic_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data = teams_cont)
+
+summary(adjr2_bic_model)
+
+vif(adjr2_bic_model)
+```
+The best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals.
+
+#### 6.2.3 Training and Testing Linear Regression Model for Expected Goals
+To train our linear regression model, we created train and test data sets in 20-80 split of the match-diff data frame. We analyzed the training results of our model looking at the residual values in the plots below.
+```{r Making training and testing datasets, fig.show='hold', out.width='50%'}
+# Make training and test data sets
+set.seed(1)
+row.number<-sample(1:nrow(teams), 0.8*nrow(teams))
+teams_train<-teams[row.number,]
+teams_test<-teams[-row.number,]
+
+# Train model
+model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data=teams_train)
+summary(model_goals)
+plot(model_goals)
+```
+**Figure 5.** Plots showing the residuals of our model on the training data.
+
+Next, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals.
+```{r test linear regression model}
+# Test model
+teams_test$pred_goals<-predict(model_goals, newdata=teams_test)
+rmse <- sqrt(sum((exp(teams_test$pred_goals) - teams_test$goals)^2)/length(teams_test$goals))
+c(RMSE = rmse, R2=summary(model_goals)$r.squared)
+
+plot(teams_test$goals, teams_test$pred_goals, xlab='Expected Goals', ylab='Predicted Goals', main='Results of Testing', ylim = c(-0.5,7), xlim=c(-0.5,7))
+abline(lm(pred_goals~goals,data=teams_test),col='red')
+```
+**Figure 6.** Predicted number of goals vs expected number of goals.
+
+### 6.3 Developing a Logistical Regression Model to Predict Expected Goals
+
+
+## Chapter 7: Conclusions
