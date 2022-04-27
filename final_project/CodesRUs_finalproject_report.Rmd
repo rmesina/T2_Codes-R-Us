@@ -701,15 +701,17 @@ best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
 plot(best2, scale = "adjr2", main = "Adjusted R^2")
 plot(best2, scale = "bic", main = "BIC")
 
-# The best model
-adjr2_bic_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data = teams_cont)
-
 #summary(adjr2_bic_model)
 
 #vif(adjr2_bic_model)
+
+# The best model
+adjr2_bic_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data = teams_cont)
+
+ezids::xkabledply(adjr2_bic_model, title = "Standard Linear Regression")
 ```
 
-Based on the plots above, the best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals. We will move forward with the best linear regression model for now, and return to this issue later in the report.
+Based on the plots above, the best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model returns a max VIF of 2.53, which indicates that there is no concern for multicollinearity. However, this model only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals. We will move forward with the best linear regression model for now, and return to this issue later in the report (Section 6.4).
 
 #### 6.2.3 Training and Testing Linear Regression Model for Expected Goals
 
@@ -729,7 +731,7 @@ plot(model_goals)
 ```
 **Figure 5.** Plots showing the residuals of our model on the training data.
 
-The first thing we notice is the pattern of diagonals in the top left plot. This is an effect of the fact that the dependent variable (# of goals) is a count variable rather than a continuous variable. Later in the report, we explore Poisson modeling, which is more appropriate for count data.
+The first thing we notice is the pattern of diagonals in the top left plot. This is an effect of the fact that the dependent variable (# of goals) is a count variable rather than a continuous variable. Later in the report, we explore Poisson modeling, which is more appropriate for count data (Section 6.5).
 
 Returning to our best linear regression model, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals.
 
@@ -788,7 +790,7 @@ plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
                       )
 ```
 
-### 6.4 Developing PCA Model to Predict Expected Goals
+### 6.4 Using PCA/PCR to Predict Expected Goals
 
 Returning to the concern that the linear regression model has a low R Squared value of 0.408, we want to see whether we can capture more variation in # goals by somehow incorporating the variables we left out of the linear regression. However, we are not inclined to simply throw those variables in due to the concern for multicollinearity (e.g. passes and pass accuracy are highly correlated as suggested by Figure 4). Instead, we may be able to incorporate such variables using PCA/PCR.
 
@@ -800,7 +802,7 @@ xkabledply(teams_pca)
 ```
 **Table 5.** Displays the contribution of each variable to each PC.
 
-#### 6.4.1 Developing PCA Model for Predicting Expected Goals
+#### 6.4.1 Developing PCR Model for Predicting Expected Goals
 ```{r PCR}
 pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
 
@@ -831,6 +833,30 @@ Additionally, we found that PC1, PC2, PC7, and PC9 were the most significant com
 fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
 ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
 #summary(fit_pc_lim)
+```
+
+The variables that contribute most to each of the PC's included in the limited model are the following:
+
+1. PC1: shots and passes
+2. PC2: shots.target and fouls
+3. PC7: possession and pass.acc
+4. PC9: corners and shots
+
+### 6.5 Poisson Modelling for Count Data
+
+Returning to the idea that Poisson modelling might be more appropriate in analyzing number of goals due to its non-negative count nature, we use the glm() function instead of the lm() function on the best models we identified under linear regression and PCR settings above.
+
+```{r poisson}
+# The best model
+adjr2_bic_poissonmodel <- glm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, family = 'poisson', data = teams_cont)
+
+summary(adjr2_bic_poissonmodel)
+
+ezids::xkabledply(adjr2_bic_poissonmodel, title = "Standard Poisson Regression")
+```
+
+```{r poisson pcr}
+
 ```
 
 ## Chapter 7: Conclusions
