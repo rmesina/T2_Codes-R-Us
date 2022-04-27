@@ -488,7 +488,7 @@ merge_model2$probability <- model6$fitted.values
 
 To get our final model we used the probabilities obtained above as the dependent variables.
 ```{r step 6, results='hide'}
-# STEP 6. MAKE A NEW MODEL WITH THE PROBABILITIES AS DEPENDANT VARIABLE
+# STEP 6. MAKE A NEW MODEL WITH THE PROBABILITIES AS DEPENDENT VARIABLE
 model6b <- glm(probability ~ Distance + x.Start*y.Start , data = merge_model2)
 summary(model6b)
 vif(model6b)
@@ -660,6 +660,7 @@ plot(h)
 ### 6.1 Setting up Expected Goals Data Frame
 
 In order to analyze the goals variable, we need to transform the data set from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
+
 ```{r Set up data frame Q3}
 ## Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
 team1 <- match_summary[c('team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds')]
@@ -673,6 +674,7 @@ colnames(team2) <- c('team', 'goals', 'shots', 'shots.target', 'passes','pass.ac
 teams <- rbind(team1, team2)
 teams_cont <- subset(teams, select = -c(team))
 ```
+
 The data set, teams, now has 3,882 records that can be used to analyze number of goals and the factors that influence it. 
 
 ### 6.2 Developing a Linear Model to Predict Expected Goals
@@ -689,7 +691,8 @@ corrplot.mixed(corr)
 
 #### 6.2.2 Model Feature Selection
 
-We will run various linear regression models and evaluate them against one another. For this exercise, we will only use continuous variables and then check adjusted R squared to compare models.
+We will run the linear regression model that is identified as the best model under Adjusted R squared and BIC criteria. For this exercise, we want to see, in general, whether or not the match statistics themselves explain the variation in number of goals. We are not currently interested in the difference between teams, so we will only keep continuous variables in the model.
+
 ```{r linear regressions}
 best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
 plot(best2, scale = "adjr2", main = "Adjusted R^2")
@@ -702,10 +705,13 @@ adjr2_bic_model <- lm(goals ~ shots + shots.target + pass.acc + possession + cor
 
 #vif(adjr2_bic_model)
 ```
-The best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals.
+
+Based on the plots above, the best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals. We will move forward with the best linear regression model for now, and return to this issue later in the report.
 
 #### 6.2.3 Training and Testing Linear Regression Model for Expected Goals
+
 To train our linear regression model, we created train and test data sets in 20-80 split of the match-diff data frame. We analyzed the training results of our model looking at the residual values in the plots below.
+
 ```{r Making training and testing datasets, fig.show='hold', out.width='50%'}
 # Make training and test data sets
 set.seed(1)
@@ -720,7 +726,10 @@ plot(model_goals)
 ```
 **Figure 5.** Plots showing the residuals of our model on the training data.
 
-Next, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals.
+The first thing we notice is the pattern of diagonals in the top left plot. This is an effect of the fact that the dependent variable (# of goals) is a count variable rather than a continuous variable. Later in the report, we explore Poisson modeling, which is more appropriate for count data.
+
+Returning to our best linear regression model, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals.
+
 ```{r test linear regression model}
 # Test model
 teams_test$pred_goals<-predict(model_goals, newdata=teams_test)
@@ -778,7 +787,7 @@ plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
 
 ### 6.4 Developing PCA Model to Predict Expected Goals
 
-Now we want to see whether we can incorporate these variables without worrying about multicollinearity, as well as find any trends or relations previously hidden from us. We may be able to do that using PCA/PCR.
+Returning to the concern that the linear regression model has a low R Squared value of 0.408, we want to see whether we can capture more variation in # goals by somehow incorporating the variables we left out of the linear regression. However, we are not inclined to simply throw those variables in due to the concern for multicollinearity (e.g. passes and pass accuracy are highly correlated as suggested by Figure 4). Instead, we may be able to incorporate such variables using PCA/PCR.
 
 ```{r PCA}
 teams_cont_scaled <- data.frame(scale(teams_cont))
@@ -790,13 +799,16 @@ xkabledply(teams_pca)
 
 #### 6.4.1 Developing PCA Model for Predicting Expected Goals
 ```{r PCR}
-#pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
+pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
 
 #summary(pcr.fit.cont)
 
-#validationplot(pcr.fit.cont, val.type = "R2")
+validationplot(pcr.fit.cont)
+
 ```
-**Figure 7.** Shows R^2 vs number of PC components.
+**Figure 7.** Shows RMSEP vs number of PC components.
+
+We tested a full PC model, that used all PCs in the PCR. The result of this model is shown below.
 
 ```{r test}
 teamsscaled.pc <- PCAxform( teams_cont[,2:11], z=TRUE ) # exclude goals column at index 1
@@ -804,17 +816,17 @@ teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
 #head(teamsscaled.pc)
 ```
 
-First PC model used all pc components, summary for which is shown below. We found that PC1, PC2, PC7, and PC9 were the most significant components without showing much similarities in the weighted values for each variable within the components.
 ```{r full pc model}
 fit_pc <- lm(goals~., data = teamsscaled.pc)
-#ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
+ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
 #summary(fit_pc)
 ```
 
-A limited model was then build using these components, PC1, PC2, PC7, and PC9. The summary for which is shown below.
-```{r limmited pc model}
+Additionally, we found that PC1, PC2, PC7, and PC9 were the most significant components without showing much similarities in the weighted values for each variable within the components. Having four components also appears to be appropriate given the RMSEP plot above. The summary of this model is shown below.
+
+```{r limited pc model}
 fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
-#ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
+ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
 #summary(fit_pc_lim)
 ```
 
