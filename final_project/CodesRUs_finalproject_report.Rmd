@@ -485,7 +485,7 @@ merge_model2$probability <- model6$fitted.values
 
 To get our final model we used the probabilities obtained above as the dependent variables.
 ```{r step 6, results='hide'}
-# STEP 6. MAKE A NEW MODEL WITH THE PROBABILITIES AS DEPENDANT VARIABLE
+# STEP 6. MAKE A NEW MODEL WITH THE PROBABILITIES AS DEPENDENT VARIABLE
 model6b <- glm(probability ~ Distance + x.Start*y.Start , data = merge_model2)
 summary(model6b)
 vif(model6b)
@@ -787,13 +787,16 @@ xkabledply(teams_pca)
 
 #### 6.4.1 Developing PCA Model for Predicting Expected Goals
 ```{r PCR}
-#pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
+pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
 
 #summary(pcr.fit.cont)
 
-#validationplot(pcr.fit.cont, val.type = "R2")
+validationplot(pcr.fit.cont)
+
 ```
-**Figure 7.** Shows R^2 vs number of PC components.
+**Figure 7.** Shows RMSEP vs number of PC components.
+
+We tested a full PC model, that used all PCs in the PCR. The result of this model is shown below.
 
 ```{r test}
 teamsscaled.pc <- PCAxform( teams_cont[,2:11], z=TRUE ) # exclude goals column at index 1
@@ -801,17 +804,17 @@ teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
 #head(teamsscaled.pc)
 ```
 
-First PC model used all pc components, summary for which is shown below. We found that PC1, PC2, PC7, and PC9 were the most significant components without showing much similarities in the weighted values for each variable within the components.
 ```{r full pc model}
 fit_pc <- lm(goals~., data = teamsscaled.pc)
-#ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
+ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
 #summary(fit_pc)
 ```
 
-A limited model was then build using these components, PC1, PC2, PC7, and PC9. The summary for which is shown below.
-```{r limmited pc model}
+Additionally, we found that PC1, PC2, PC7, and PC9 were the most significant components without showing much similarities in the weighted values for each variable within the components. Having four components also appears to be appropriate given the RMSEP plot above. The summary of this model is shown below.
+
+```{r limited pc model}
 fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
-#ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
+ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
 #summary(fit_pc_lim)
 ```
 
