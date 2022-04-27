@@ -571,7 +571,7 @@ xkabledplyhead(match_diff)
 
 ### 5.1 Developing Logistic Regression Model to Predict Match Winner
 
-Since we are interested in using all match summary variables and there are only ten independent ones in our data frame, we decided to skip feature selection. Since our dependent variable is categorical (team 1 or team 2) we used a logistical regression model. Looking at the summary of the model, only 5 out of the 11 variables were found to have any significance (shot.dif, shot.target.dif, pass.acc.dif, corners.dif, and red.dif).
+Since we are interested in using all match summary variables and there are only ten independent ones in our data frame, we decided to skip feature selection. Since our dependent variable is categorical (team 1 or team 2) we used a logistical regression model. Looking at the p-value of each variable, shown in Tabe x, only 5 out of the 11 variables were found to have any significance. These were: shot.dif, shot.target.dif, pass.acc.dif, corners.dif, and red.dif. This means that the match summary holds a lot of information that is irrelevent to predicting the outcome of the game. Therefore, we made a second model using only the match summary variables that we found to be significant. The summary of model 2 is also shown in Table x. Analyzing these models by comparing their AIC values we see there is no difference between them, backing up our claim that only half of the variables given in a match summary help portray the result of the game.
 
 ```{r logistical regression model 1}
 library(bestglm)
@@ -579,7 +579,6 @@ model_1<-glm(winner ~ ., data=match_diff, family='binomial')
 #summary(winner_model)
 ```
 
-In model 2 only the variables found to be significant were included.
 ```{r logistical regression model 2}
 model_2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif, data = match_diff, family='binomial')
 
@@ -588,10 +587,11 @@ winner_table<-tab_model(model_1, model_2,
 winner_table
 #summary(winner_model2)
 ```
-Comparing model 1 and model 2 AIC values, they are found to be the same. Therefore, we decided to train and test model 2 as it has fewer variables but performs just as well as model 1.
 
 ### 5.2 Training and Testing our Match Winner Model
-To train model 2, we created train and test data sets in 20-80 split of the match-diff data frame.
+While we can say only half the data given in the match summary helps predict the outcome of a game, we don't know how well that data is able to help us predict the match winner. It also does not mean that the match summary holds all the information necessary to accurately predict a match winner. To do this we need to first train, then test our model. To do this we created training and testing data sets from our match summary data frame. 
+
+To train model 2, we created train and test data sets in 80-20 split of the match-diff data frame.
 ```{r train and test}
 # Make training and test data sets
 set.seed(1)
@@ -608,6 +608,8 @@ match_test$pred=pred
 ```
 
 ### 5.3  Assessing our Match Winner Model
+
+The resulting confusion matrix is shown in Table 4. 
 Next, we analyzed the test results of model 2 by first making a confusion matrix, from which we could calculate the accuracy, which is 73%.
 ```{r model 2 confusion matrix}
 ## Confusion Matrix
@@ -642,9 +644,10 @@ cfm_win<-as_tibble(win_table)
 accuracy=(567+562)/1552
 recall=(214+562)/776
 ```
+![](./JPEGS/winner_conf_matrix.jpg)
 **Table 4.** Confusion matrix of test results for winner_model2.
 
-We finished by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804.
+We finished assessing our model by looking  by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804.
 ```{r ROC plot and AUC}
 ## Calculate ROC and AUC
 h <- roc(winner~pred, data=match_test)
