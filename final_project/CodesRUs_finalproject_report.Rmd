@@ -645,7 +645,7 @@ recall=(214+562)/776
 ![](./JPEGS/winner_conf_matrix.jpg)
 **Table 4.** Confusion matrix of test results for winner_model2.
 
-We finished assessing our model by looking  by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804.
+We finished assessing our model by looking  by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804, indicating that our model does a good job predicting a winner, but is not overfitted to the training data set.
 ```{r ROC plot and AUC}
 ## Calculate ROC and AUC
 h <- roc(winner~pred, data=match_test)
@@ -729,9 +729,9 @@ plot(model_goals)
 ```
 **Figure 5.** Plots showing the residuals of our model on the training data.
 
-The first thing we notice is the pattern of diagonals in the top left plot. This is an effect of the fact that the dependent variable (# of goals) is a count variable rather than a continuous variable. Later in the report, we explore Poisson modeling, which is more appropriate for count data (Section 6.5).
+The first thing we notice is the pattern of diagonals in the top left plot. This is an effect of the fact that the dependent variable (# of goals) is a count variable rather than a continuous variable. Later in the report, we explore logistical regression and  Poisson modeling, which are more appropriate for count data (Section 6.5).
 
-Returning to our best linear regression model, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals.
+Returning to our best linear regression model, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals. The red line shows the fitted line. Ideally, this would have a slope of 1, but that is not the cause showing that our model has room for improvement.
 
 ```{r test linear regression model}
 # Test model
@@ -745,6 +745,8 @@ abline(lm(pred_goals~goals,data=teams_test),col='red')
 **Figure 6.** Predicted number of goals vs expected number of goals.
 
 ### 6.3 Developing a Logistical Regression Model to Predict Expected Goals
+
+From looking at the results of our linear regressionn model we saw that this really was not an appropriate model for predicting expected goals, as we get results such as a negative and non-integer predicted values for expected goals which doesn't represent reality. Therefore, we treated expected goals as a categorical variable and developed a logistical regression model with the same variables as our linear model.
 ```{r multinomial logistic regression, results='hide'}
 # create separate data set from linear model
 teams_logit<-teams
@@ -775,6 +777,8 @@ conf<-confusion_matrix(targets = conf_df$target,
                        predictions =  conf_df$prediction)
 ```
 
+Figure 7 shows the confusion matrix resulting from the test results of our multinomial logistical regression model. 
+
 ```{r plot confusion matrix}
 plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
                       add_sums = TRUE,
@@ -787,6 +791,7 @@ plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
                       tile_border_color = 'black'
                       )
 ```
+**Figure 7** Confustion matrix showing the results of our multinomial logistical regression model.
 
 ### 6.4 Using PCA/PCR to Predict Expected Goals
 
@@ -809,7 +814,7 @@ pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
 validationplot(pcr.fit.cont)
 
 ```
-**Figure 7.** Shows RMSEP vs number of PC components.
+**Figure 8.** Shows RMSEP vs number of PC components.
 
 We tested a full PC model, that used all PCs in the PCR. The result of this model is shown below.
 
