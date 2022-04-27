@@ -34,6 +34,11 @@ library(ISLR)
 library(leaps)
 library(caret)
 require(nnet)
+library(cvms)
+library(tibble)
+library(ggimage)
+library(rsvg)
+library(ggnewscale)
 pacman::p_load(ezids, ggplot2, ggsoccer, ggpubr, dplyr, vtable, readr, stats, tidyverse, tidyr)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
@@ -456,7 +461,6 @@ plot(h)
 
 In order to analyze the goals variable, we need to transform the data set from long to wide. This way, each match-team combination will have a corresponding # goals value stored in the same column.
 ```{r Set up data frame Q3}
-## Prep for SMART question 3:
 ## Create separate datasets for Team1 and Team2. Only keeping totals as well as the relevant team's stats
 team1 <- match_summary[c('team1','team1.goals', 'team1.shots','team1.shots.target','team1.passes','team1.pass.acc','team1.possession','team1.corners','team1.offsides','team1.fouls','team1.yellows','team1.reds')]
 
@@ -530,9 +534,6 @@ abline(lm(pred_goals~goals,data=teams_test),col='red')
 
 ### 6.3 Developing a Logistical Regression Model to Predict Expected Goals
 ```{r multinomial logistic regression}
-library(caret)
-require(nnet)
-
 # create separate data set from linear model
 teams_logit<-teams
 
@@ -552,8 +553,27 @@ multinomial_model<-multinom(goals ~ ., data=train, MaxNWts=100000)
 test$goalsPredicted<-predict(multinomial_model, newdata = test, "class")
 
 # Results
-tab<-xkabledply(test$goals, test$goalsPredicted)
-tab
+test_goals<-test$goals
+test_pred_goals<-test$goalsPredicted
+
+conf_df<-tibble('target'=test_goals,
+                'prediction'=test_pred_goals)
+
+conf<-confusion_matrix(targets = conf_df$target,
+                       predictions =  conf_df$prediction)
+
+plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
+                      add_sums = TRUE,
+                      add_normalized = FALSE,
+                      font_counts = font(
+                        size=6,
+                        angle=45),
+                      add_row_percentages = FALSE,
+                      add_col_percentages = FALSE,
+                      tile_border_color = 'black'
+                      )
 ```
+
+### 6.4 Developing PCA Model to Predict Expected Goals
 
 ## Chapter 7: Conclusions
