@@ -830,4 +830,10 @@ ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
 #summary(fit_pc_lim)
 ```
 
+The variables that contribute most to each of the PC's included in the limited model are the following:
+
+1. PC1: shots and passes
+2. PC2: shots.target and fouls
+3. PC7: possession and pass.acc
+4. PC9: corners and shots
 ## Chapter 7: Conclusions
