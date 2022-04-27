@@ -646,7 +646,7 @@ recall=(214+562)/776
 ![](./JPEGS/winner_conf_matrix.jpg)
 **Table 4.** Confusion matrix of test results for winner_model2.
 
-We finished assessing our model by looking  by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804.
+We finished assessing our model by looking  by looking at the ROC plot of our test results and found the area under the curve (AUC) was found to be 0.804, indicating that our model does a good job predicting a winner, but is not overfitted to the training data set.
 ```{r ROC plot and AUC}
 ## Calculate ROC and AUC
 h <- roc(winner~pred, data=match_test)
@@ -700,15 +700,16 @@ best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
 plot(best2, scale = "adjr2", main = "Adjusted R^2")
 plot(best2, scale = "bic", main = "BIC")
 
-summary(adjr2_bic_model)
-
 #vif(adjr2_bic_model)
 
 # The best model
 adjr2_bic_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data = teams_cont)
 
+summary(adjr2_bic_model)
+
 ezids::xkabledply(adjr2_bic_model, title = "Standard Linear Regression")
 ```
+**Figure 5**
 
 Based on the plots above, the best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model returns a max VIF of 2.53, which indicates that there is no concern for multicollinearity. However, this model only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals. We will move forward with the best linear regression model for now, and return to this issue later in the report (Section 6.4).
 
@@ -728,11 +729,11 @@ model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners +
 #summary(model_goals)
 plot(model_goals)
 ```
-**Figure 5.** Plots showing the residuals of our model on the training data.
+**Figure 6.** Plots showing the residuals of our model on the training data.
 
-The first thing we notice is the pattern of diagonals in the top left plot. This is an effect of the fact that the dependent variable (# of goals) is a count variable rather than a continuous variable. Later in the report, we explore Poisson modeling, which is more appropriate for count data (Section 6.5).
+The first thing we notice is the pattern of diagonals in the top left plot. This is an effect of the fact that the dependent variable (# of goals) is a count variable rather than a continuous variable. Later in the report, we explore logistical regression and  Poisson modeling, which are more appropriate for count data (Section 6.5).
 
-Returning to our best linear regression model, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals.
+Returning to our best linear regression model, we tested our model using the test data set and looked at both the RMSE, and R^2 values, which are 5.259, and 0.416, respectively. The figure below shows predicted number of goals vs the expected number of goals. The red line shows the fitted line. Ideally, this would have a slope of 1, but that is not the cause showing that our model has room for improvement.
 
 ```{r test linear regression model}
 # Test model
@@ -743,9 +744,11 @@ rmse <- sqrt(sum((exp(teams_test$pred_goals) - teams_test$goals)^2)/length(teams
 plot(teams_test$goals, teams_test$pred_goals, xlab='Expected Goals', ylab='Predicted Goals', main='Results of Testing', ylim = c(-0.5,7), xlim=c(-0.5,7))
 abline(lm(pred_goals~goals,data=teams_test),col='red')
 ```
-**Figure 6.** Predicted number of goals vs expected number of goals.
+**Figure 7.** Predicted number of goals vs expected number of goals.
 
 ### 6.3 Developing a Logistical Regression Model to Predict Expected Goals
+
+From looking at the results of our linear regressionn model we saw that this really was not an appropriate model for predicting expected goals, as we get results such as a negative and non-integer predicted values for expected goals which doesn't represent reality. Therefore, we treated expected goals as a categorical variable and developed a logistical regression model with the same variables as our linear model.
 ```{r multinomial logistic regression, results='hide'}
 # create separate data set from linear model
 teams_logit<-teams
@@ -776,6 +779,8 @@ conf<-confusion_matrix(targets = conf_df$target,
                        predictions =  conf_df$prediction)
 ```
 
+Figure 7 shows the confusion matrix resulting from the test results of our multinomial logistical regression model. From the confusion matrix we calculate our accuracy to by 43% which is quite low. From this we can conclude that while the match summary statisticas are sufficient to  predict the winner of the match, their ability to predict the specific score is quite poor and if we want to be able to accurately predict the number of goals we need to identify different variables.
+
 ```{r plot confusion matrix}
 plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
                       add_sums = TRUE,
@@ -788,6 +793,7 @@ plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
                       tile_border_color = 'black'
                       )
 ```
+**Figure 8** Confustion matrix showing the results of our multinomial logistical regression model.
 
 ### 6.4 Using PCA/PCR to Predict Expected Goals
 
@@ -810,7 +816,7 @@ pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
 validationplot(pcr.fit.cont)
 
 ```
-**Figure 7.** Shows RMSEP vs number of PC components.
+**Figure 9.** Shows RMSEP vs number of PC components.
 
 We tested a full PC model, that used all PCs in the PCR. The result of this model is shown below.
 
@@ -858,7 +864,7 @@ ezids::xkabledply(adjr2_bic_poissonmodel, title = "Standard Poisson Regression")
 ```{r limited pc model poisson}
 fit_pc_lim_poissonmodel <- glm(goals~PC1+PC2+PC7+PC9, family = "poisson", data = teamsscaled.pc)
 
-summary(fit_pc_lim_poissonmodel)
+#summary(fit_pc_lim_poissonmodel)
 
 ezids::xkabledply(fit_pc_lim_poissonmodel, title = "Poisson model using Principal Comps")
 
@@ -878,6 +884,6 @@ However, we know that all four models do not exactly perform as well as we would
 
 1. 
 
-2.
+2. Only half of the match summary variables are necessary to accurately predict the winner of a match quite accurately, with our model having an accuracy of 73%.
 
 3. The best model to estimate number of goals, given available data, is the Poisson-PCR modelling. All other "best" models perform similarly but Poisson is more appropriate for count data, and PCR accounts for many features without having to worry about multicollinearity. Better and more complete data will likely further improve the model performance.
