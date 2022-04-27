@@ -39,6 +39,9 @@ library(tibble)
 library(ggimage)
 library(rsvg)
 library(ggnewscale)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
 pacman::p_load(ezids, ggplot2, ggsoccer, ggpubr, dplyr, vtable, readr, stats, tidyverse, tidyr)
 # knitr::opts_chunk$set(warning = F, results = "markup", message = F)
 knitr::opts_chunk$set(warning = F, results = "markup", message = F, echo=F)
@@ -510,7 +513,10 @@ ggplot(data = merge_model2, aes(probability_test - probability))+
 ## Chapter 5: Predicting Match Winners
 
 ### Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, being home team vs being visitor team, etc.), can we predict who the winner of a particular match was?
-In order to predict the match winner based on the match summary variables, we decided to first reduce the number of variables taking the difference between a certain stat for the two teams. This halved the number of variables to look at. This resulted in the data frame in table 3, where a positive value is in favor of team 1 while a negative value favors team 2. Ratios were not used because many of the values in some of the variables have a zero value, so taking the ratio often resulted in not useful values.
+
+Match statistics are used as a metric to help determine and portray the performance of each team and the match as a whole to an audience. Compared to the wealth of data recorded by clubs on their teams player's every match, these match summary statistics are very small, and it raises the question: do these match summary statistics paint an accurate picture of the game? If so, we should be able to predict the winner of a match most of the time just with these variables. 
+
+In order to predict the match winner based on the match summary variables, we decided to first reduce the number of variables by taking the difference between a certain stat for the two teams. This halved the number of variables to look at. This resulted in the data frame in table 3, where a positive value is in favor of team 1 while a negative value favors team 2. Ratios were not used because many of the values in some of the variables have a zero value, so taking the ratio often resulted in infinity, which is not a useful value in this instance.
 
 ```{r simplifying match summary}
 match_summary <- data.frame(read.csv('./datasets/match_summary.csv'))
@@ -564,16 +570,22 @@ xkabledplyhead(match_diff)
 **Table 3.** First five rows of match_difference data frame.
 
 ### 5.1 Developing Logistic Regression Model to Predict Match Winner
-In the first model all variables in the match_difference data frame were used. Looking at the summary of the model, only 5 out of the 11 variables were found to have any significance (shot.dif, shot.target.dif, pass.acc.dif, corners.dif, and red.dif).
+
+Since we are interested in using all match summary variables and there are only ten independent ones in our data frame, we decided to skip feature selection. Since our dependent variable is categorical (team 1 or team 2) we used a logistical regression model. Looking at the summary of the model, only 5 out of the 11 variables were found to have any significance (shot.dif, shot.target.dif, pass.acc.dif, corners.dif, and red.dif).
+
 ```{r logistical regression model 1}
 library(bestglm)
-winner_model<-glm(winner ~ ., data=match_diff, family='binomial')
+model_1<-glm(winner ~ ., data=match_diff, family='binomial')
 #summary(winner_model)
 ```
 
 In model 2 only the variables found to be significant were included.
 ```{r logistical regression model 2}
-winner_model2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif, data = match_diff, family='binomial')
+model_2<-glm(winner ~ shot.dif + shot.target.dif + pass.acc.dif + corners.dif, data = match_diff, family='binomial')
+
+winner_table<-tab_model(model_1, model_2,
+                        show.aic = TRUE)
+winner_table
 #summary(winner_model2)
 ```
 Comparing model 1 and model 2 AIC values, they are found to be the same. Therefore, we decided to train and test model 2 as it has fewer variables but performs just as well as model 1.
@@ -595,7 +607,7 @@ pred<-predict(winner_model2, newdata = match_test, type='response')
 match_test$pred=pred
 ```
 
-### 5.3 Assessing our Match Winner Model
+### 5.3  Assessing our Match Winner Model
 Next, we analyzed the test results of model 2 by first making a confusion matrix, from which we could calculate the accuracy, which is 73%.
 ```{r model 2 confusion matrix}
 ## Confusion Matrix
