@@ -50,6 +50,8 @@ options(scientific=T, digits = 3)
 
 # Modelling Shot Success Rate and Win Probabilities in Soccer
 
+![](./JPEGs/soccer_analysis.jpg)
+
 ```{r load data}
 # Load and prep event data
 england<-data.frame(read.csv('./datasets/event_England.csv'))
@@ -122,12 +124,15 @@ The dataset contains all matches played in Europe’s top five leagues during th
 One variable we are interested in looking at is the distance of assists and key passes and whether this plays a role in the success of the pass and whether it results in a successful shot on goal or not. We have to calculate distance for each event using the x,y-coordinates given in the data set. To do this we assumed field dimensions of 120 yards in length of 75 yards wide. This is the average size of a soccer pitch. We then are able to calculate event distances in yards instead of percentages. If the x and y coordinates in percentage were used we'd get a distorted distance since in reality a soccer field is not square. In this report x & y-coordinates are displayed as percentages, while event distance is displayed in yards so results are not distorted.
 
 ## Chapter 3: Event Vizualization
+
 ### 3.1 Understanding the Field
 To understand our data, we needed to first understand how the field is set up. The field is set up so that the length is given by the x-coordinate, and the width is given by the y-coordinate. Each coordinate is given as a percentage. Events are always oriented so that the attacking team is going from left to right.
 
+![](./JPEGS/Soccer_pitch_coordinates.jpg.png)
 **Figure 1.** Pitch schematic showing direction of attack and event x,y-coordinate example.
 
 ### 3.2 Event Visualization
+
 #### 3.2.1 Visualizing Field Locations
 Using the ggsoccer library to plot event data on an image of a pitch and bordering the x and y axis with event density plots we were quickly able to understand how each event is distributed on the pitch, shown in Figure 2. Several observations can be made from this visualization. First, the x & y-coordinates for both key passes and assists are multimodal and appear to be symmetric across the y=50 line. This makes sense as teams try to attack down both sides of the field. With this data being an average over so many games getting a symmetric split between the two sides of the field is expected. This symmetry could be a factor that varies from team to team, however. Second, the x & y-coordinate distributions for shots and goals is much closer to normal. The exception being the x-coordinate for shots which is bimodal. This is interesting because it indicates that a significant portion of shots are taken farther away from goal, however, very few goals are scored from these shots. Despite this, players still seem to take these shots. 
   
@@ -344,6 +349,164 @@ assist_dist
 
 ### Given the variables that describe the (X, Y) coordinates of the beginning and end of key events (shots, assists, key passes), which configuration of the variables result in the best fitting model that gives the probability of a shot on goal being successful?
 
+In the midterm project, we came up with a logit model to try and predict the probabilities of scoring a goal, given the (x, y) starting coordinates on the field, the (x, y) ending coordinates, as well as the distance travelled by the ball.
+
+There were some issues with this approach:
+
+  1.	There was high multicollinearity between the terms in the model. For example, “Distance” is dependent on the (x, y) coordinates for starting and ending plays.
+  
+  2.	The data from the independent variables was not centered.
+  
+  3.	The Betas obtained at the summary of the model were not the probabilities of scoring a goal; rather, they were the logit coefficients of the model. We had not seen the technique to convert the logit coefficients to actual probabilities (i.e., fitted values), so we were unable to propose a better model.
+  
+  4.	From the previous point, it is then necessary to build an additional vector in the database that includes reasonable values of the probabilities of scoring a goal. We then need to build an additional model that results in Betas expressed as probabilities of scoring a goal.
+
+With this, we did 4 things:
+
+ 1.	Checked that the selection of observations is balanced: similar number of observations for success as for failure (1 or 0 in “Success” vector). These counts resulted in 30,475 observations of success vs 33,786 observations of failure. It’s more or less balanced, so no further action was taken.
+ 
+ 2.	We centered the values of independent variables: subtract the mean from of each variable from each observation of that variable.
+
+ 3.	We built new logit models, considering interaction terms.
+
+ 4.	We evaluated the logit models based on BIC and VIF criteria, and selected the one that had no multicollinearity and lowest BIC.
+
+### 4.1 Setting up Event Probability Data Frame
+
+First we had to set up our data frame by pulling out the shot, assist, key pass, and goal events. From the Accurate tags for each even a success value of either 1 for successful or 0 for non-successful and added it to the data frame. From this we can train our model to predict success probability.
+```{r, results='hide' }
+pacman::p_load(tidyverse, tidyr, dplyr, readr, stats, car)
+
+#From merge_new, obtain the rows that contain "Shot", "Assist", "Goal" and/or "Key pass".
+merge4model_shot <- filter(event_data, Subevent.Name == "Shot")
+merge4model_AGK <- filter(event_data, Tag.1 == "Assist" | Tag.1 == "Goal" | Tag.1 == "Key pass")
+
+merge_model <- bind_rows(merge4model_shot, merge4model_AGK)
+merge_model <- distinct(merge_model) #Removes repeated rows
+
+#Assign a boolean for goal scored (1), or not (0)
+merge_model$Success <- rep(0,nrow(merge_model))
+merge_model$Success <- ifelse(( merge_model$Tag.2 == "Accurate"|
+                                merge_model$Tag.3 == "Accurate"|
+                                merge_model$Tag.4 == "Accurate"|
+                                merge_model$Tag.5 == "Accurate"|
+                                merge_model$Tag.6 == "Accurate"),1,0)
+
+unique(merge_model$Success)
+
+#Calculate the distance for each event using Pythagoras theorem:
+#Typical dimensions of a field: 120 by 75 yards
+merge_model$Distance <- rep(0, times = nrow(merge_model))
+merge_model$Distance <- sqrt((1.2*(merge_model$x.End - merge_model$x.Start))**2 + 
+                               (0.75*(merge_model$y.End - merge_model$y.Start))**2)
+
+#Build different models of probability of success
+model1 <-glm(Success ~  x.Start + y.Start, data = merge_model)
+model2 <- glm(Success ~ x.Start + x.End + y.Start + y.End, data = merge_model)
+model3 <- glm(Success ~ x.Start + x.End + y.Start + y.End + Distance, data = merge_model, family = "binomial")
+
+#Summaries of models
+#summary(model1)
+#summary(model2)
+#summary(model3) 
+
+#BIC of models: lower value means better model
+#BIC(model1)
+#BIC(model2)
+#BIC(model3) # model3 is the best fitted.
+
+#Testing
+merge_model$Predict <- 0.4905 + 0.002179*merge_model$x.Start + 
+  0.009305*merge_model$x.End + 0.0002713*merge_model$y.Start -
+  0.0109*merge_model$y.End - 0.002941*merge_model$Distance
+#summary(merge_model$Predict)
+```
+
+### 4.2 Getting Vector Probabilities from Logistical Regression Model
+
+STEP 1 is checking that the data is centered, the number of successes and failures are approximately equal.
+```{r step 1, results='hide'}
+sum(merge_model$Success == 1) #30,808 observations
+sum(merge_model$Success == 0) #33,453 observations. They are similar.
+```
+
+The second step is to center the values of the independent variables by subtracting the mean of each variable from the each observation of that variable.
+```{r step 2}
+merge_model2 <- merge_model
+
+merge_model2$x.Start <- merge_model$x.Start - mean(merge_model$x.Start)
+merge_model2$x.End <- merge_model$x.End - mean(merge_model$x.End)
+merge_model2$y.Start <- merge_model$y.Start - mean(merge_model$y.Start)
+merge_model2$y.End <- merge_model$y.End - mean(merge_model$y.End)
+```
+
+Next we made a logit model and obtained the resulting probability vectors.
+```{r step 3}
+#STEP 3. Make the logit model. Obtain the probability vector.
+model3 <- glm(Success ~ x.Start + x.End + y.Start + y.End + Distance, data = merge_model2, family = "binomial")
+model4 <- glm(Success ~ x.Start*y.Start , data = merge_model2, family = "binomial")
+model5 <- glm(Success ~ x.End + y.End + x.Start*y.Start , data = merge_model2, family = "binomial")
+model6 <- glm(Success ~ Distance + x.Start*y.Start , data = merge_model2, family = "binomial")
+```
+
+Next we compared the BIC value of each model and checked for multicollinearity by comparing VIF values.
+```{r step 4, results='hide'}
+#STEP 4. EVALUATE THE MODELS
+BIC(model3)
+BIC(model4)
+BIC(model5)
+BIC(model6)
+
+vif(model3)
+vif(model4)
+vif(model5)
+vif(model6)
+
+summary3 <- summary(model3)
+summary4 <- summary(model4)
+summary5 <- summary(model5)
+summary6 <- summary(model6)
+
+with(summary3, 1 - deviance/null.deviance) #McFadden's R^2
+with(summary4, 1 - deviance/null.deviance)
+with(summary5, 1 - deviance/null.deviance)
+with(summary6, 1 - deviance/null.deviance)
+```
+Model6 has a high BIC, but it doesn't show multicollinearity (vif < 2). Thus, this is the model we will use.
+
+Then we added the probability vector to the database from the fitted values.
+```{r step 5}
+#STEP 5. ADD THE PROBABILITY VECTOR TO THE DATABASE FROM THE FITTED VALUES
+merge_model2$probability <- model6$fitted.values
+#summary(merge_model2$probability) #Values here make sense
+```
+
+### 4.3 Linear Regression Model using Vector Probabilities as Variables to Predict Shot Success Rates
+
+To get our final model we used the probabilities obtained above as the dependent variables.
+```{r step 6, results='hide'}
+# STEP 6. MAKE A NEW MODEL WITH THE PROBABILITIES AS DEPENDANT VARIABLE
+model6b <- glm(probability ~ Distance + x.Start*y.Start , data = merge_model2)
+summary(model6b)
+vif(model6b)
+with(summary(model6b), 1 - deviance/null.deviance)
+BIC(model6b)
+```
+
+Lastly we tested our model.
+```{r testing new model}
+#TESTING THE NEW MODEL
+datatest_model6b <- select(merge_model2, one_of(c("Distance", "x.Start", "y.Start")))
+merge_model2$probability_test <- predict(model6b, datatest_model6b)
+
+ggplot(data = merge_model2, aes(probability_test - probability))+
+         geom_histogram(bins = 10, binwidth = 0.005)+
+  coord_cartesian(xlim = c(-0.2, 0.2))+
+  labs(title = "Histogram. Error of estimates form Model 6b", 
+       subtitle = "Probability estimate - Probability from Logit", 
+       x = "Errors", y = "Frequency")
+```
+
 ## Chapter 5: Predicting Match Winners
 
 ### Based on match stats (i.e., percentage of possession of the ball, number of shots, number of shots on target, being home team vs being visitor team, etc.), can we predict who the winner of a particular match was?
@@ -437,8 +600,34 @@ match_test$pred=pred
 Next, we analyzed the test results of model 2 by first making a confusion matrix, from which we could calculate the accuracy, which is 73%.
 ```{r model 2 confusion matrix}
 ## Confusion Matrix
-conf_matrix<-xkabledply(confusion_matrix(winner_model2), title = "Confusion matrix from Logit Model" )
-conf_matrix
+winner_df<-tibble('target'=match_test$winner,
+                  'prediction'=match_test$pred)
+
+win_table <- table(winner_df)
+
+cfm_win<-as_tibble(win_table)
+
+#conf_mat <- win_eval$`Confusion Matrix`[[1]]
+
+#conf_mat <- confusion_matrix(targets = winner_df$target,
+#                             predictions = winner_df$prediction)
+
+#plot_confusion_matrix(cfm_win,
+#                      target_col = 'target',
+#                      prediction_col = 'prediction',
+#                      counts_col = 'n',
+#                      add_sums = TRUE,
+#                      add_normalized = FALSE,
+#                      font_counts = font(
+#                        size=6,
+#                        angle=45),
+#                      add_row_percentages = FALSE,
+#                      add_col_percentages = FALSE,
+#                      tile_border_color = 'black'
+#                      )
+
+#conf_matrix<-xkabledply(confusion_matrix(winner_model2), title = "Confusion matrix from Logit Model" )
+#conf_matrix
 accuracy=(567+562)/1552
 recall=(214+562)/776
 ```
@@ -498,9 +687,9 @@ plot(best2, scale = "bic", main = "BIC")
 # The best model
 adjr2_bic_model <- lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data = teams_cont)
 
-summary(adjr2_bic_model)
+#summary(adjr2_bic_model)
 
-vif(adjr2_bic_model)
+#vif(adjr2_bic_model)
 ```
 The best model for goals, under both adjusted R squared and BIC methods, consists of shots, shots.target, pass.acc, possession, corners, and fouls. This model, however, only has an adjusted R Squared value of 0.408. This indicates that there is some information being left out of the model that could explain variation in number of goals.
 
@@ -515,7 +704,7 @@ teams_test<-teams[-row.number,]
 
 # Train model
 model_goals<-lm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, data=teams_train)
-summary(model_goals)
+#summary(model_goals)
 plot(model_goals)
 ```
 **Figure 5.** Plots showing the residuals of our model on the training data.
@@ -561,7 +750,8 @@ conf_df<-tibble('target'=test_goals,
 
 conf<-confusion_matrix(targets = conf_df$target,
                        predictions =  conf_df$prediction)
-
+```
+```{r plot confusion matrix}
 plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
                       add_sums = TRUE,
                       add_normalized = FALSE,
@@ -575,5 +765,45 @@ plot_confusion_matrix(conf$'Confusion Matrix'[[1]],
 ```
 
 ### 6.4 Developing PCA Model to Predict Expected Goals
+
+Now we want to see whether we can incorporate these variables without worrying about multicollinearity, as well as find any trends or relations previously hidden from us. We may be able to do that using PCA/PCR.
+
+```{r PCA}
+teams_cont_scaled <- data.frame(scale(teams_cont))
+
+teams_pca <- prcomp(teams_cont_scaled)
+xkabledply(teams_pca)
+```
+**Table 5.** Displays the contribution of each variable to each PC.
+
+#### 6.4.1 Developing PCA Model for Predicting Expected Goals
+```{r PCR}
+#pcr.fit.cont=pcr(goals~.,data=teams_cont,scale=TRUE,validation ="CV")
+
+#summary(pcr.fit.cont)
+
+#validationplot(pcr.fit.cont, val.type = "R2")
+```
+**Figure 7.** Shows R^2 vs number of PC components.
+
+```{r test}
+teamsscaled.pc <- PCAxform( teams_cont[,2:11], z=TRUE ) # exclude goals column at index 1
+teamsscaled.pc$goals = teams_cont[,1] # copy back the goals as y-target
+#head(teamsscaled.pc)
+```
+
+First PC model used all pc components, summary for which is shown below. We found that PC1, PC2, PC7, and PC9 were the most significant components without showing much similarities in the weighted values for each variable within the components.
+```{r full pc model}
+fit_pc <- lm(goals~., data = teamsscaled.pc)
+#ezids::xkabledply(fit_pc, title = "Full model using Principal Comps")
+#summary(fit_pc)
+```
+
+A limited model was then build using these components, PC1, PC2, PC7, and PC9. The summary for which is shown below.
+```{r limmited pc model}
+fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
+#ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
+#summary(fit_pc_lim)
+```
 
 ## Chapter 7: Conclusions
