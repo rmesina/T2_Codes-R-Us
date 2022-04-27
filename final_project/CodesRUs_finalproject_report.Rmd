@@ -699,7 +699,7 @@ best2 <- regsubsets(goals~., data = teams_cont, nbest = 2, method='seqrep')
 plot(best2, scale = "adjr2", main = "Adjusted R^2")
 plot(best2, scale = "bic", main = "BIC")
 
-#summary(adjr2_bic_model)
+summary(adjr2_bic_model)
 
 #vif(adjr2_bic_model)
 
@@ -829,8 +829,9 @@ Additionally, we found that PC1, PC2, PC7, and PC9 were the most significant com
 
 ```{r limited pc model}
 fit_pc_lim <- lm(goals~PC1+PC2+PC7+PC9, data = teamsscaled.pc)
+summary(fit_pc_lim)
 ezids::xkabledply(fit_pc_lim, title = "Limited model using Principal Comps")
-#summary(fit_pc_lim)
+
 ```
 
 The variables that contribute most to each of the PC's included in the limited model are the following:
@@ -848,13 +849,34 @@ Returning to the idea that Poisson modelling might be more appropriate in analyz
 # The best model
 adjr2_bic_poissonmodel <- glm(goals ~ shots + shots.target + pass.acc + possession + corners + fouls, family = 'poisson', data = teams_cont)
 
-summary(adjr2_bic_poissonmodel)
+#summary(adjr2_bic_poissonmodel)
 
 ezids::xkabledply(adjr2_bic_poissonmodel, title = "Standard Poisson Regression")
 ```
 
-```{r poisson pcr}
+```{r limited pc model poisson}
+fit_pc_lim_poissonmodel <- glm(goals~PC1+PC2+PC7+PC9, family = "poisson", data = teamsscaled.pc)
+
+summary(fit_pc_lim_poissonmodel)
+
+ezids::xkabledply(fit_pc_lim_poissonmodel, title = "Poisson model using Principal Comps")
 
 ```
 
+Applying Poisson modelling to the best linear regression model (identified under Adjusted R Squared and BIC criteria) and the limited PCR model, we observe the following:
+
+1. Between the linear regression and poisson modelling, the relative magnitude and signs of the coefficients did not change. All variables remain significant.
+2. The linear regression has a rather low Adjusted R squared, and the Poisson model has a rather high AIC. Both don't perform as well as we'd like, but the two models show us consistent results.
+3. Between the linear PCR and Poisson PCR, we see similar differences.
+
+We conclude that because 1) PCR is able to account for the most features in the data without concern for multicollinearity, and 2) Poisson is more appropriate for count data than a linear regression, the best model to estimate number of goals is the PCR-Poisson model.
+
+However, we know that all four models do not exactly perform as well as we would like. There is a lot of variation in number of goals that's being left unexplained. Perhaps lack of data is the bigger challenge. This makes sense because there are quite a few factors that would intuitively impact the number of goals (or the chance of winning) such as being the home/away team.
+
 ## Chapter 7: Conclusions
+
+1. 
+
+2.
+
+3. The best model to estimate number of goals, given available data, is the Poisson-PCR modelling. All other "best" models perform similarly but Poisson is more appropriate for count data, and PCR accounts for many features without having to worry about multicollinearity. Better and more complete data will likely further improve the model performance.
