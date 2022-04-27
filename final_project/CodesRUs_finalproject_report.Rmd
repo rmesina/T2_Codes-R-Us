@@ -433,7 +433,7 @@ sum(merge_model$Success == 1) #30,808 observations
 sum(merge_model$Success == 0) #33,453 observations. They are similar.
 ```
 
-The second step is to center the values of the independent variables by subtracting the mean of each variable from the each observation of that variable.
+STEP 2 is to center the values of the independent variables by subtracting the mean of each variable from the each observation of that variable.
 ```{r step 2}
 merge_model2 <- merge_model
 
@@ -443,7 +443,8 @@ merge_model2$y.Start <- merge_model$y.Start - mean(merge_model$y.Start)
 merge_model2$y.End <- merge_model$y.End - mean(merge_model$y.End)
 ```
 
-Next we made a logit model and obtained the resulting probability vectors.
+In STEP 3 we built different logit models. It is important to note that we did not use regular feature selection due to the interactions that some of these models would later have. Rather, we implemented a more artisanal trial-and-error method to come up with a model with a low VIF, and a low BIC. This was in fact an iterative process, complementing this step with STEP 4.
+
 ```{r step 3}
 #STEP 3. Make the logit model. Obtain the probability vector.
 model3 <- glm(Success ~ x.Start + x.End + y.Start + y.End + Distance, data = merge_model2, family = "binomial")
@@ -452,7 +453,7 @@ model5 <- glm(Success ~ x.End + y.End + x.Start*y.Start , data = merge_model2, f
 model6 <- glm(Success ~ Distance + x.Start*y.Start , data = merge_model2, family = "binomial")
 ```
 
-Next we compared the BIC value of each model and checked for multicollinearity by comparing VIF values.
+For STEP 4, we compared the BIC value of each model and checked for multicollinearity by comparing VIF values. As we said before, the target was to find a model with acceptable VIF values, and a low BIC.
 ```{r step 4, results='hide'}
 #STEP 4. EVALUATE THE MODELS
 BIC(model3)
@@ -475,9 +476,9 @@ with(summary4, 1 - deviance/null.deviance)
 with(summary5, 1 - deviance/null.deviance)
 with(summary6, 1 - deviance/null.deviance)
 ```
-Model6 has a high BIC, but it doesn't show multicollinearity (vif < 2). Thus, this is the model we will use.
 
-Then we added the probability vector to the database from the fitted values.
+Model6 has a high BIC, but it doesn't show multicollinearity (vif < 2). Thus, this is the model we will use to extract the probability of success vector and merge it into our original dataset.
+.
 ```{r step 5}
 #STEP 5. ADD THE PROBABILITY VECTOR TO THE DATABASE FROM THE FITTED VALUES
 merge_model2$probability <- model6$fitted.values
